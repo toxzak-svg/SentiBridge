@@ -1,0 +1,40 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: SentimentOracle
+    network: matic  # Polygon mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Replace with deployed address
+      abi: SentimentOracle
+      startBlock: 0  # Replace with deployment block
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - SentimentUpdate
+        - DailySentiment
+        - HourlySentiment
+        - Operator
+      abis:
+        - name: SentimentOracle
+          file: ./abis/SentimentOracle.json
+      eventHandlers:
+        - event: SentimentUpdated(indexed string,uint256,uint256,bytes32)
+          handler: handleSentimentUpdated
+        - event: TokenWhitelisted(indexed string)
+          handler: handleTokenWhitelisted
+        - event: TokenDelisted(indexed string)
+          handler: handleTokenDelisted
+        - event: CircuitBreakerTriggered(indexed string,uint256,uint256,uint256)
+          handler: handleCircuitBreakerTriggered
+        - event: OperatorUpdated(indexed address,indexed address)
+          handler: handleOperatorUpdated
+        - event: Paused(address)
+          handler: handlePaused
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: ./src/mapping.ts
