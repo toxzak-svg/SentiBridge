@@ -24,12 +24,14 @@ dependencies = [
     "tweepy>=4.14.0",
     "discord.py>=2.3.0",
     "python-telegram-bot>=20.7",
+    "telethon>=1.33.0",
     
     # NLP & ML
     "transformers>=4.36.0",
     "torch>=2.1.0",
     "nltk>=3.8.1",
     "vaderSentiment>=3.3.2",
+    "datasketch>=1.6.0",
     
     # Data processing
     "pandas>=2.1.0",
