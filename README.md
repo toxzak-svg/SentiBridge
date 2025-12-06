@@ -3,9 +3,10 @@
 > **Decentralized Sentiment Oracle for Crypto Markets**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.19-blue.svg)](https://docs.soliditylang.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.23-blue.svg)](https://docs.soliditylang.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://www.python.org/)
 [![Polygon](https://img.shields.io/badge/Network-Polygon-purple.svg)](https://polygon.technology/)
+[![Testnet](https://img.shields.io/badge/Testnet-Live-brightgreen.svg)](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f)
 
 SentiBridge is a decentralized sentiment oracle that aggregates real-time social media sentiment data from Twitter, Discord, and Telegram, processes it through NLP analysis with manipulation detection, and makes it available on-chain for AI agents, DeFi protocols, and dashboards.
 
@@ -17,6 +18,21 @@ SentiBridge is a decentralized sentiment oracle that aggregates real-time social
 - **On-Chain Oracle**: UUPS-upgradeable Polygon smart contract with role-based access
 - **Tiered API**: Free, Pro, and Enterprise tiers with rate limiting and webhooks
 - **GraphQL Indexing**: The Graph subgraph for efficient historical queries
+
+## 🌐 Deployed Contracts
+
+### Polygon Amoy Testnet (Live)
+
+| Contract | Address |
+|----------|---------|  
+| **Proxy (Main)** | [`0x272441473a9994623e65A32890484809033fbB7f`](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f) |
+| **Implementation** | [`0xDC528bf9D41b16B14c178D52474E700f0B9dee85`](https://amoy.polygonscan.com/address/0xDC528bf9D41b16B14c178D52474E700f0B9dee85) |
+
+**Network:** Chain ID 80002 | **RPC:** `https://rpc-amoy.polygon.technology`
+
+### Polygon Mainnet
+
+🔜 Coming after security audit
 
 ## 🏗️ Architecture
 
@@ -142,7 +158,7 @@ cd workers && python integration_test.py --mock
 - [x] **Phase 5**: Subgraph schema and mappings
 - [x] **Phase 6**: CI/CD pipelines and infrastructure
 - [x] **Phase 7**: Security hardening (timelock, production deploy scripts, Slither analysis)
-- [ ] **Phase 8**: Testnet deployment (Polygon Amoy) - [Guide](docs/TESTNET_DEPLOYMENT.md)
+- [x] **Phase 8**: Testnet deployment (Polygon Amoy) ✅ **LIVE** - [View Contract](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f)
 - [ ] **Phase 9**: External security audit
 - [ ] **Phase 10**: Mainnet launch
 

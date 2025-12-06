@@ -237,11 +237,23 @@ SentiBridge is a decentralized sentiment oracle system that aggregates real-time
 
 ## Deployment Environments
 
-| Environment | Network | Purpose |
-|-------------|---------|---------|
-| Local | Anvil | Development |
-| Staging | Polygon Amoy | Integration testing |
-| Production | Polygon Mainnet | Live system |
+| Environment | Network | Contract Address | Status |
+|-------------|---------|------------------|--------|
+| Local | Anvil (31337) | Dynamic | Development |
+| **Testnet** | **Polygon Amoy (80002)** | [`0x272441473a9994623e65A32890484809033fbB7f`](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f) | **✅ Live** |
+| Production | Polygon Mainnet (137) | TBD | Pending Audit |
+
+### Testnet Deployment Details
+
+**Deployed:** December 6, 2025
+
+| Component | Address/Info |
+|-----------|--------------|
+| Proxy (Entry Point) | `0x272441473a9994623e65A32890484809033fbB7f` |
+| Implementation | `0xDC528bf9D41b16B14c178D52474E700f0B9dee85` |
+| Admin/Operator | `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637` |
+| Version | 1.0.0 |
+| Verification | ✅ Sourcify (exact match) |
 
 ## Monitoring & Alerting
 

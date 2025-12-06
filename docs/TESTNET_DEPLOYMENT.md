@@ -1,5 +1,8 @@
 # SentiBridge Testnet Deployment Guide
 
+> **✅ STATUS: DEPLOYED** - Contracts are live on Polygon Amoy testnet as of December 6, 2025.
+>\n> **Proxy:** [`0x272441473a9994623e65A32890484809033fbB7f`](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f)
+
 This guide walks through deploying SentiBridge to **Polygon Amoy Testnet** for integration testing.
 
 ## Prerequisites

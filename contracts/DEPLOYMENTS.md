@@ -36,6 +36,43 @@ This file tracks all SentiBridge contract deployments across networks.
 
 - [Implementation on Polygonscan](https://amoy.polygonscan.com/address/0xDC528bf9D41b16B14c178D52474E700f0B9dee85)
 - [Proxy on Polygonscan](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f)
+- ✅ **Sourcify Verification**: Exact match
+
+### Contract Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Version | 1.0.0 |
+| Admin Role | `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637` |
+| Operator Role | `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637` |
+| Upgrader Role | `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637` |
+| Token Whitelist | Disabled |
+| Circuit Breaker | Disabled |
+| Max History Size | 288 entries (24h @ 5min) |
+| Min Update Interval | 4 minutes |
+
+### Interacting with the Contract
+
+```bash
+# Set environment
+export PROXY=0x272441473a9994623e65A32890484809033fbB7f
+export RPC=https://rpc-amoy.polygon.technology
+
+# Read current sentiment for a token
+cast call $PROXY "getSentiment(address)((int128,uint64,uint32,uint16))" \
+  <TOKEN_ADDRESS> --rpc-url $RPC
+
+# Check if paused
+cast call $PROXY "paused()(bool)" --rpc-url $RPC
+
+# Get total updates
+cast call $PROXY "totalUpdates()(uint256)" --rpc-url $RPC
+
+# Update sentiment (requires OPERATOR_ROLE)
+cast send $PROXY "updateSentiment(address,int128,uint32,uint16)" \
+  <TOKEN_ADDRESS> <SCORE> <SAMPLE_SIZE> <CONFIDENCE> \
+  --rpc-url $RPC --private-key $PRIVATE_KEY
+```
 
 ---
 
@@ -85,9 +122,9 @@ forge verify-contract \
 
 ## Upgrade History
 
-| Date | Version | Description | TX Hash |
-|------|---------|-------------|---------|
-| - | 1.0.0 | Initial deployment | - |
+| Date | Version | Network | Description | TX Hash |
+|------|---------|---------|-------------|---------|
+| Dec 6, 2025 | 1.0.0 | Amoy | Initial testnet deployment | [`0x01d7e4...`](https://amoy.polygonscan.com/tx/0x01d7e4a61f3f6dd9e3da3cba960e1f3f8934229701957f6d432993d7a1c5bdcf) |
 
 ---
 
