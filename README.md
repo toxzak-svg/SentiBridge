@@ -113,13 +113,14 @@ See [SECURITY.md](docs/SECURITY.md) for full details.
 ## 🛣️ Roadmap
 
 - [x] **Phase 1**: Core architecture and documentation
-- [ ] **Phase 2**: Smart contract implementation
-- [ ] **Phase 3**: Off-chain workers
-- [ ] **Phase 4**: API layer
-- [ ] **Phase 5**: Subgraph deployment
-- [ ] **Phase 6**: Testnet launch (Polygon Amoy)
-- [ ] **Phase 7**: Security audit
-- [ ] **Phase 8**: Mainnet launch
+- [x] **Phase 2**: Smart contract implementation (UUPS upgradeable, AccessControl, circuit breaker)
+- [x] **Phase 3**: Off-chain workers (collectors, NLP analyzer, manipulation detection)
+- [x] **Phase 4**: API layer (tiered FastAPI with rate limiting)
+- [x] **Phase 5**: Subgraph schema and mappings
+- [x] **Phase 6**: CI/CD pipelines and infrastructure
+- [ ] **Phase 7**: Testnet deployment (Polygon Amoy)
+- [ ] **Phase 8**: Security audit
+- [ ] **Phase 9**: Mainnet launch
 
 ## 🤝 Contributing
 

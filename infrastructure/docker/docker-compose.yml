@@ -1,0 +1,161 @@
+# SentiBridge Local Development Stack
+# Run with: docker-compose up -d
+
+services:
+  # ============ Databases ============
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentibridge-postgres
+    environment:
+      POSTGRES_USER: sentibridge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev123}
+      POSTGRES_DB: sentibridge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentibridge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: sentibridge-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ Local Blockchain ============
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: sentibridge-anvil
+    entrypoint: anvil
+    command: --host 0.0.0.0 --port 8545 --accounts 10 --balance 10000
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ API ============
+  api:
+    build:
+      context: ../../api
+      dockerfile: Dockerfile
+    container_name: sentibridge-api
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://sentibridge:${POSTGRES_PASSWORD:-localdev123}@postgres:5432/sentibridge
+      - REDIS_URL=redis://redis:6379/0
+      - POLYGON_RPC_URL=http://anvil:8545
+      - SECRET_KEY=${API_SECRET_KEY:-development_secret_key_change_me}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      anvil:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============ Worker ============
+  worker:
+    build:
+      context: ../../workers
+      dockerfile: Dockerfile
+    container_name: sentibridge-worker
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql+asyncpg://sentibridge:${POSTGRES_PASSWORD:-localdev123}@postgres:5432/sentibridge
+      - REDIS_URL=redis://redis:6379/0
+      - POLYGON_RPC_URL=http://anvil:8545
+      - ORACLE_CONTRACT_ADDRESS=${ORACLE_CONTRACT_ADDRESS:-0x0000000000000000000000000000000000000000}
+      # Add API keys for social platforms if available
+      - TWITTER_BEARER_TOKEN=${TWITTER_BEARER_TOKEN:-}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      anvil:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ============ Monitoring ============
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: sentibridge-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: sentibridge-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
+  # ============ Graph Node (Local Subgraph) ============
+  graph-node:
+    image: graphprotocol/graph-node:v0.34.0
+    container_name: sentibridge-graph-node
+    ports:
+      - "8020:8020"  # JSON-RPC admin
+      - "8030:8030"  # GraphQL HTTP
+      - "8040:8040"  # GraphQL WebSocket
+    environment:
+      postgres_host: postgres
+      postgres_user: sentibridge
+      postgres_pass: ${POSTGRES_PASSWORD:-localdev123}
+      postgres_db: graph_node
+      ipfs: "https://ipfs.network.thegraph.com"
+      ethereum: "matic:http://anvil:8545"
+      GRAPH_LOG: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: sentibridge-network
