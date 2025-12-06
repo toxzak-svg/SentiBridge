@@ -406,9 +406,13 @@ contract SentimentOracleV1 is
         uint32 sampleSize,
         uint16 confidence
     ) internal {
-        // Validate inputs
+        // Validate inputs - these revert on invalid input
+        // Return values intentionally unchecked as functions revert on failure
+        // slither-disable-next-line unused-return
         score.validateScore();
+        // slither-disable-next-line unused-return
         confidence.validateConfidence();
+        // slither-disable-next-line unused-return
         sampleSize.validateSampleSize();
 
         // Circuit breaker check
