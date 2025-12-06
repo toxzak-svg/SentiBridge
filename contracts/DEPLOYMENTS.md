@@ -20,20 +20,22 @@ This file tracks all SentiBridge contract deployments across networks.
 
 | Contract | Address | Notes |
 |----------|---------|-------|
-| SentimentOracleV1 (Implementation) | `TBD` | |
-| SentimentOracleV1 (Proxy) | `TBD` | Main entry point |
+| SentimentOracleV1 (Implementation) | `0xDC528bf9D41b16B14c178D52474E700f0B9dee85` | |
+| SentimentOracleV1 (Proxy) | `0x272441473a9994623e65A32890484809033fbB7f` | Main entry point |
 | SentiBridgeTimelock | `TBD` | 1-hour delay (testnet) |
 
 **Chain ID:** 80002  
 **RPC:** https://rpc-amoy.polygon.technology  
 **Explorer:** https://amoy.polygonscan.com  
-**Deployer:** `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637`
+**Deployer:** `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637`  
+**Deployed:** December 6, 2025  
+**Deployment TX (Impl):** `0x01d7e4a61f3f6dd9e3da3cba960e1f3f8934229701957f6d432993d7a1c5bdcf`  
+**Deployment TX (Proxy):** `0x6091f8111376a869ef755102c75aece17be38b64d82d1a275d0e1145ebee7bb7`
 
-### Deployment Instructions
+### Verification Links
 
-1. Get testnet MATIC from: https://faucet.polygon.technology/
-2. Fund deployer address: `0x252fdFd1732DF149D6AcfB3038aA4eB1258Ca637`
-3. Run: `cd contracts && ./script/deploy-testnet.sh`
+- [Implementation on Polygonscan](https://amoy.polygonscan.com/address/0xDC528bf9D41b16B14c178D52474E700f0B9dee85)
+- [Proxy on Polygonscan](https://amoy.polygonscan.com/address/0x272441473a9994623e65A32890484809033fbB7f)
 
 ---
 
