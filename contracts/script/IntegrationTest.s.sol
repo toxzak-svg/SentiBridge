@@ -61,34 +61,23 @@ contract IntegrationTest is Script {
         console2.log("--- Testing Read Functions ---");
         
         // Test 1: Check contract version
-        try this.assertVersion(oracle) {
+        string memory version = oracle.VERSION();
+        if (bytes(version).length > 0) {
+            console2.log("  Version:", version);
             pass("Version check");
-        } catch {
+        } else {
             fail("Version check");
         }
         
         // Test 2: Check whitelist status
-        try this.assertWhitelistStatus(oracle) {
-            pass("Whitelist status check");
-        } catch {
-            fail("Whitelist status check");
-        }
+        bool whitelistEnabled = oracle.tokenWhitelistEnabled();
+        console2.log("  Whitelist enabled:", whitelistEnabled);
+        pass("Whitelist status check");
         
-        // Test 3: Read current sentiment (may not exist yet)
-        try oracle.getSentiment(testToken) returns (SentimentOracleV1.SentimentData memory) {
-            pass("Get current sentiment");
-        } catch {
-            // This is OK if no sentiment exists yet
-            pass("Get current sentiment (none exists)");
-        }
-        
-        // Test 4: Get history count
-        try oracle.getHistoryCount(testToken) returns (uint256 count) {
-            console2.log("  History count:", count);
-            pass("Get history count");
-        } catch {
-            fail("Get history count");
-        }
+        // Test 3: Get history count
+        uint256 count = oracle.getHistoryCount(testToken);
+        console2.log("  History count:", count);
+        pass("Get history count");
     }
     
     function testWriteFunctions(SentimentOracleV1 oracle) internal {
@@ -98,34 +87,65 @@ contract IntegrationTest is Script {
         // Need to broadcast for writes
         vm.startBroadcast();
         
-        // Test 5: Submit sentiment update
-        try this.submitSentiment(oracle) {
-            pass("Submit sentiment");
+        // Test 4: Submit sentiment update
+        bool sentimentSuccess = false;
+        try oracle.updateSentiment(
+            testToken,
+            int128(420e15),  // Slightly bullish (0.42 in 18 decimals)
+            500,             // 500 samples
+            7500             // 75% confidence (basis points)
+        ) {
+            sentimentSuccess = true;
         } catch Error(string memory reason) {
             console2.log("  Reason:", reason);
-            fail("Submit sentiment");
         } catch {
-            fail("Submit sentiment (unknown error)");
+            console2.log("  Unknown error");
         }
         
-        // Test 6: Submit batch update
-        try this.submitBatchSentiment(oracle) {
+        if (sentimentSuccess) {
+            pass("Submit sentiment");
+        } else {
+            fail("Submit sentiment");
+        }
+        
+        // Test 5: Submit batch update
+        bool batchSuccess = false;
+        {
+            address[] memory tokens = new address[](1);
+            int128[] memory scores = new int128[](1);
+            uint32[] memory samples = new uint32[](1);
+            uint16[] memory confidences = new uint16[](1);
+            
+            tokens[0] = testToken;
+            scores[0] = int128(550e15);  // 0.55 in 18 decimals
+            samples[0] = 750;
+            confidences[0] = 8000;       // 80% in basis points
+            
+            try oracle.batchUpdateSentiment(tokens, scores, samples, confidences) {
+                batchSuccess = true;
+            } catch Error(string memory reason) {
+                console2.log("  Batch reason:", reason);
+            } catch {
+                console2.log("  Batch unknown error");
+            }
+        }
+        
+        if (batchSuccess) {
             pass("Submit batch sentiment");
-        } catch Error(string memory reason) {
-            console2.log("  Reason:", reason);
+        } else {
             fail("Submit batch sentiment");
-        } catch {
-            fail("Submit batch sentiment (unknown error)");
         }
         
         vm.stopBroadcast();
         
-        // Test 7: Verify sentiment was stored
-        try oracle.getSentiment(testToken) returns (SentimentOracleV1.SentimentData memory data) {
+        // Test 6: Verify sentiment was stored
+        SentimentOracleV1.SentimentData memory data = oracle.getSentiment(testToken);
+        if (data.score != 0 || data.sampleSize != 0) {
             console2.log("  Score:", uint256(int256(data.score)));
             console2.log("  Confidence:", uint256(data.confidence));
+            console2.log("  Samples:", uint256(data.sampleSize));
             pass("Verify sentiment stored");
-        } catch {
+        } else {
             fail("Verify sentiment stored");
         }
     }
@@ -134,79 +154,66 @@ contract IntegrationTest is Script {
         console2.log("");
         console2.log("--- Testing Edge Cases ---");
         
-        // Test 8: Invalid score should revert (exceeds MAX_SCORE of 1e18)
         vm.startBroadcast();
+        
+        // Test 7: Invalid score should revert (exceeds MAX_SCORE of 1e18)
+        bool invalidScoreReverted = false;
         try oracle.updateSentiment(
             testToken,
             int128(2e18), // Invalid: > MAX_SCORE (1e18)
             1000,
             8500
         ) {
-            fail("Invalid score accepted (should revert)");
+            // Should not reach here
         } catch {
-            pass("Invalid score rejected");
+            invalidScoreReverted = true;
         }
         
-        // Test 9: Invalid confidence should revert (exceeds 10000 basis points)
+        if (invalidScoreReverted) {
+            pass("Invalid score rejected");
+        } else {
+            fail("Invalid score accepted (should revert)");
+        }
+        
+        // Test 8: Invalid confidence should revert (exceeds 10000 basis points)
+        bool invalidConfidenceReverted = false;
         try oracle.updateSentiment(
             testToken,
             int128(500e15),
             1000,
             15000  // Invalid: > 10000 (100%)
         ) {
-            fail("Invalid confidence accepted (should revert)");
+            // Should not reach here
         } catch {
-            pass("Invalid confidence rejected");
+            invalidConfidenceReverted = true;
         }
         
-        // Test 10: Zero address should revert
+        if (invalidConfidenceReverted) {
+            pass("Invalid confidence rejected");
+        } else {
+            fail("Invalid confidence accepted (should revert)");
+        }
+        
+        // Test 9: Zero address should revert
+        bool zeroAddressReverted = false;
         try oracle.updateSentiment(
             address(0),
             int128(500e15),
             1000,
             8500
         ) {
-            fail("Zero address accepted (should revert)");
+            // Should not reach here
         } catch {
+            zeroAddressReverted = true;
+        }
+        
+        if (zeroAddressReverted) {
             pass("Zero address rejected");
+        } else {
+            fail("Zero address accepted (should revert)");
         }
         
         vm.stopBroadcast();
-    }
-    
-    // Helper functions that can be called with try/catch
-    function assertVersion(SentimentOracleV1 oracle) external view {
-        string memory version = oracle.VERSION();
-        require(bytes(version).length > 0, "Empty version");
-        console2.log("  Version:", version);
-    }
-    
-    function assertWhitelistStatus(SentimentOracleV1 oracle) external view {
-        bool enabled = oracle.tokenWhitelistEnabled();
-        console2.log("  Whitelist enabled:", enabled);
-    }
-    
-    function submitSentiment(SentimentOracleV1 oracle) external {
-        oracle.updateSentiment(
-            testToken,
-            int128(420e15),  // Slightly bullish (0.42 in 18 decimals)
-            500,             // 500 samples
-            7500             // 75% confidence (basis points)
-        );
-    }
-    
-    function submitBatchSentiment(SentimentOracleV1 oracle) external {
-        address[] memory tokens = new address[](1);
-        int128[] memory scores = new int128[](1);
-        uint32[] memory samples = new uint32[](1);
-        uint16[] memory confidences = new uint16[](1);
-        
-        tokens[0] = testToken;
-        scores[0] = int128(550e15);  // 0.55 in 18 decimals
-        samples[0] = 750;
-        confidences[0] = 8000;       // 80% in basis points
-        
-        oracle.batchUpdateSentiment(tokens, scores, samples, confidences);
     }
     
     // Test result helpers
