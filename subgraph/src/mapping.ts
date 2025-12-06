@@ -1,11 +1,9 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Address } from "@graphprotocol/graph-ts";
 
 import {
   SentimentUpdated,
   TokenWhitelisted,
-  TokenDelisted,
   CircuitBreakerTriggered,
-  OperatorUpdated,
   Paused,
   Unpaused,
 } from "../generated/SentimentOracle/SentimentOracle";
@@ -16,7 +14,6 @@ import {
   DailySentiment,
   HourlySentiment,
   CircuitBreakerEvent,
-  Operator,
   OracleStats,
 } from "../generated/schema";
 
@@ -26,13 +23,16 @@ const DAY_SECONDS = BigInt.fromI32(86400);
 const STATS_ID = "stats";
 
 // Helper functions
-function getOrCreateToken(symbol: string): Token {
-  let token = Token.load(symbol);
+function getOrCreateToken(address: Address): Token {
+  let id = address.toHexString();
+  let token = Token.load(id);
   
   if (token == null) {
-    token = new Token(symbol);
-    token.currentScore = BigInt.fromI32(5000); // Neutral default
-    token.currentVolume = BigInt.fromI32(0);
+    token = new Token(id);
+    token.address = address;
+    token.currentScore = BigInt.fromI32(0);
+    token.currentConfidence = 0;
+    token.currentSampleSize = 0;
     token.lastUpdated = BigInt.fromI32(0);
     token.isWhitelisted = false;
     token.updateCount = BigInt.fromI32(0);
@@ -57,28 +57,14 @@ function getOrCreateStats(): OracleStats {
   return stats;
 }
 
-function getOrCreateOperator(address: string): Operator {
-  let operator = Operator.load(address);
-  
-  if (operator == null) {
-    operator = new Operator(address);
-    operator.isActive = false;
-    operator.addedAt = BigInt.fromI32(0);
-    operator.removedAt = null;
-    operator.updateCount = BigInt.fromI32(0);
-  }
-  
-  return operator;
-}
-
-function getDayId(tokenSymbol: string, timestamp: BigInt): string {
+function getDayId(tokenId: string, timestamp: BigInt): string {
   let dayTimestamp = timestamp.div(DAY_SECONDS).times(DAY_SECONDS);
-  return tokenSymbol + "-" + dayTimestamp.toString();
+  return tokenId + "-" + dayTimestamp.toString();
 }
 
-function getHourId(tokenSymbol: string, timestamp: BigInt): string {
+function getHourId(tokenId: string, timestamp: BigInt): string {
   let hourTimestamp = timestamp.div(HOUR_SECONDS).times(HOUR_SECONDS);
-  return tokenSymbol + "-" + hourTimestamp.toString();
+  return tokenId + "-" + hourTimestamp.toString();
 }
 
 function getOrCreateDailySentiment(token: Token, timestamp: BigInt): DailySentiment {
@@ -91,11 +77,10 @@ function getOrCreateDailySentiment(token: Token, timestamp: BigInt): DailySentim
     daily.token = token.id;
     daily.dayTimestamp = dayTimestamp;
     daily.averageScore = BigInt.fromI32(0);
-    daily.highScore = BigInt.fromI32(0);
-    daily.lowScore = BigInt.fromI32(10000);
+    daily.highScore = BigInt.fromI32(-1000000000000000000); // Min int128
+    daily.lowScore = BigInt.fromI32(1000000000000000000);  // Max int128
     daily.openScore = BigInt.fromI32(0);
     daily.closeScore = BigInt.fromI32(0);
-    daily.totalVolume = BigInt.fromI32(0);
     daily.updateCount = BigInt.fromI32(0);
   }
   
@@ -112,9 +97,8 @@ function getOrCreateHourlySentiment(token: Token, timestamp: BigInt): HourlySent
     hourly.token = token.id;
     hourly.hourTimestamp = hourTimestamp;
     hourly.averageScore = BigInt.fromI32(0);
-    hourly.highScore = BigInt.fromI32(0);
-    hourly.lowScore = BigInt.fromI32(10000);
-    hourly.totalVolume = BigInt.fromI32(0);
+    hourly.highScore = BigInt.fromI32(-1000000000000000000);
+    hourly.lowScore = BigInt.fromI32(1000000000000000000);
     hourly.updateCount = BigInt.fromI32(0);
   }
   
@@ -123,17 +107,19 @@ function getOrCreateHourlySentiment(token: Token, timestamp: BigInt): HourlySent
 
 // Event Handlers
 export function handleSentimentUpdated(event: SentimentUpdated): void {
-  let tokenSymbol = event.params.tokenSymbol;
+  let tokenAddress = event.params.token;
   let score = event.params.score;
-  let volume = event.params.volume;
-  let sourceHash = event.params.sourceHash;
-  let timestamp = event.block.timestamp;
+  let eventTimestamp = event.params.timestamp;
+  let confidence = event.params.confidence;
+  let sampleSize = event.params.sampleSize;
+  let blockTimestamp = event.block.timestamp;
   
   // Update token
-  let token = getOrCreateToken(tokenSymbol);
+  let token = getOrCreateToken(tokenAddress);
   token.currentScore = score;
-  token.currentVolume = volume;
-  token.lastUpdated = timestamp;
+  token.currentConfidence = confidence;
+  token.currentSampleSize = sampleSize;
+  token.lastUpdated = blockTimestamp;
   token.updateCount = token.updateCount.plus(BigInt.fromI32(1));
   token.save();
   
@@ -142,15 +128,15 @@ export function handleSentimentUpdated(event: SentimentUpdated): void {
   let update = new SentimentUpdate(updateId);
   update.token = token.id;
   update.score = score;
-  update.volume = volume;
-  update.sourceHash = sourceHash;
+  update.confidence = confidence;
+  update.sampleSize = sampleSize;
   update.blockNumber = event.block.number;
-  update.timestamp = timestamp;
+  update.timestamp = blockTimestamp;
   update.transactionHash = event.transaction.hash;
   update.save();
   
   // Update daily aggregation
-  let daily = getOrCreateDailySentiment(token, timestamp);
+  let daily = getOrCreateDailySentiment(token, blockTimestamp);
   
   if (daily.updateCount.equals(BigInt.fromI32(0))) {
     daily.openScore = score;
@@ -168,11 +154,10 @@ export function handleSentimentUpdated(event: SentimentUpdated): void {
   let totalScore = daily.averageScore.times(daily.updateCount).plus(score);
   daily.updateCount = daily.updateCount.plus(BigInt.fromI32(1));
   daily.averageScore = totalScore.div(daily.updateCount);
-  daily.totalVolume = daily.totalVolume.plus(volume);
   daily.save();
   
   // Update hourly aggregation
-  let hourly = getOrCreateHourlySentiment(token, timestamp);
+  let hourly = getOrCreateHourlySentiment(token, blockTimestamp);
   
   if (score.gt(hourly.highScore)) {
     hourly.highScore = score;
@@ -184,61 +169,53 @@ export function handleSentimentUpdated(event: SentimentUpdated): void {
   let hourlyTotalScore = hourly.averageScore.times(hourly.updateCount).plus(score);
   hourly.updateCount = hourly.updateCount.plus(BigInt.fromI32(1));
   hourly.averageScore = hourlyTotalScore.div(hourly.updateCount);
-  hourly.totalVolume = hourly.totalVolume.plus(volume);
   hourly.save();
   
   // Update global stats
   let stats = getOrCreateStats();
   stats.totalUpdates = stats.totalUpdates.plus(BigInt.fromI32(1));
-  stats.lastUpdate = timestamp;
+  stats.lastUpdate = blockTimestamp;
   stats.save();
 }
 
 export function handleTokenWhitelisted(event: TokenWhitelisted): void {
-  let tokenSymbol = event.params.tokenSymbol;
+  let tokenAddress = event.params.token;
+  let status = event.params.status;
   
-  let token = getOrCreateToken(tokenSymbol);
+  let token = getOrCreateToken(tokenAddress);
   
-  // If this is a new token, increment total count
+  // If this is a new token being whitelisted, increment total count
   let isNew = !token.isWhitelisted && token.updateCount.equals(BigInt.fromI32(0));
   
-  token.isWhitelisted = true;
-  token.save();
-  
   let stats = getOrCreateStats();
-  if (isNew) {
-    stats.totalTokens = stats.totalTokens.plus(BigInt.fromI32(1));
+  
+  if (status) {
+    // Token is being whitelisted
+    token.isWhitelisted = true;
+    if (isNew) {
+      stats.totalTokens = stats.totalTokens.plus(BigInt.fromI32(1));
+    }
+    stats.activeTokens = stats.activeTokens.plus(BigInt.fromI32(1));
+  } else {
+    // Token is being delisted
+    token.isWhitelisted = false;
+    stats.activeTokens = stats.activeTokens.minus(BigInt.fromI32(1));
   }
-  stats.activeTokens = stats.activeTokens.plus(BigInt.fromI32(1));
-  stats.save();
-}
-
-export function handleTokenDelisted(event: TokenDelisted): void {
-  let tokenSymbol = event.params.tokenSymbol;
   
-  let token = getOrCreateToken(tokenSymbol);
-  token.isWhitelisted = false;
   token.save();
-  
-  let stats = getOrCreateStats();
-  stats.activeTokens = stats.activeTokens.minus(BigInt.fromI32(1));
   stats.save();
 }
 
 export function handleCircuitBreakerTriggered(event: CircuitBreakerTriggered): void {
-  let tokenSymbol = event.params.tokenSymbol;
-  let previousScore = event.params.previousScore;
-  let attemptedScore = event.params.attemptedScore;
-  let maxChange = event.params.maxChange;
+  let tokenAddress = event.params.token;
+  let reason = event.params.reason;
   
-  let token = getOrCreateToken(tokenSymbol);
+  let token = getOrCreateToken(tokenAddress);
   
   let eventId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
   let cbEvent = new CircuitBreakerEvent(eventId);
   cbEvent.token = token.id;
-  cbEvent.previousScore = previousScore;
-  cbEvent.attemptedScore = attemptedScore;
-  cbEvent.maxChange = maxChange;
+  cbEvent.reason = reason;
   cbEvent.timestamp = event.block.timestamp;
   cbEvent.transactionHash = event.transaction.hash;
   cbEvent.save();
@@ -246,27 +223,6 @@ export function handleCircuitBreakerTriggered(event: CircuitBreakerTriggered): v
   let stats = getOrCreateStats();
   stats.circuitBreakerTriggers = stats.circuitBreakerTriggers.plus(BigInt.fromI32(1));
   stats.save();
-}
-
-export function handleOperatorUpdated(event: OperatorUpdated): void {
-  let oldOperator = event.params.oldOperator;
-  let newOperator = event.params.newOperator;
-  let timestamp = event.block.timestamp;
-  
-  // Deactivate old operator
-  if (oldOperator.toHexString() != "0x0000000000000000000000000000000000000000") {
-    let old = getOrCreateOperator(oldOperator.toHexString());
-    old.isActive = false;
-    old.removedAt = timestamp;
-    old.save();
-  }
-  
-  // Activate new operator
-  let operator = getOrCreateOperator(newOperator.toHexString());
-  operator.isActive = true;
-  operator.addedAt = timestamp;
-  operator.removedAt = null;
-  operator.save();
 }
 
 export function handlePaused(event: Paused): void {
