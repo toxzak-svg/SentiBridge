@@ -21,6 +21,8 @@ import {
 const HOUR_SECONDS = BigInt.fromI32(3600);
 const DAY_SECONDS = BigInt.fromI32(86400);
 const STATS_ID = "stats";
+const MIN_SCORE = BigInt.fromString("-1000000000000000000");
+const MAX_SCORE = BigInt.fromString("1000000000000000000");
 
 // Helper functions
 function getOrCreateToken(address: Address): Token {
@@ -77,8 +79,8 @@ function getOrCreateDailySentiment(token: Token, timestamp: BigInt): DailySentim
     daily.token = token.id;
     daily.dayTimestamp = dayTimestamp;
     daily.averageScore = BigInt.fromI32(0);
-    daily.highScore = BigInt.fromI32(-1000000000000000000); // Min int128
-    daily.lowScore = BigInt.fromI32(1000000000000000000);  // Max int128
+    daily.highScore = MIN_SCORE;
+    daily.lowScore = MAX_SCORE;
     daily.openScore = BigInt.fromI32(0);
     daily.closeScore = BigInt.fromI32(0);
     daily.updateCount = BigInt.fromI32(0);
@@ -97,8 +99,8 @@ function getOrCreateHourlySentiment(token: Token, timestamp: BigInt): HourlySent
     hourly.token = token.id;
     hourly.hourTimestamp = hourTimestamp;
     hourly.averageScore = BigInt.fromI32(0);
-    hourly.highScore = BigInt.fromI32(-1000000000000000000);
-    hourly.lowScore = BigInt.fromI32(1000000000000000000);
+    hourly.highScore = MIN_SCORE;
+    hourly.lowScore = MAX_SCORE;
     hourly.updateCount = BigInt.fromI32(0);
   }
   
@@ -109,16 +111,15 @@ function getOrCreateHourlySentiment(token: Token, timestamp: BigInt): HourlySent
 export function handleSentimentUpdated(event: SentimentUpdated): void {
   let tokenAddress = event.params.token;
   let score = event.params.score;
-  let eventTimestamp = event.params.timestamp;
-  let confidence = event.params.confidence;
-  let sampleSize = event.params.sampleSize;
+  let confidence = event.params.confidence;  // i32
+  let sampleSize = event.params.sampleSize;  // BigInt
   let blockTimestamp = event.block.timestamp;
   
   // Update token
   let token = getOrCreateToken(tokenAddress);
   token.currentScore = score;
   token.currentConfidence = confidence;
-  token.currentSampleSize = sampleSize;
+  token.currentSampleSize = sampleSize.toI32();  // Convert BigInt to i32
   token.lastUpdated = blockTimestamp;
   token.updateCount = token.updateCount.plus(BigInt.fromI32(1));
   token.save();
@@ -129,7 +130,7 @@ export function handleSentimentUpdated(event: SentimentUpdated): void {
   update.token = token.id;
   update.score = score;
   update.confidence = confidence;
-  update.sampleSize = sampleSize;
+  update.sampleSize = sampleSize.toI32();  // Convert BigInt to i32
   update.blockNumber = event.block.number;
   update.timestamp = blockTimestamp;
   update.transactionHash = event.transaction.hash;

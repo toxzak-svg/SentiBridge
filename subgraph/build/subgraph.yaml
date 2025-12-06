@@ -1,0 +1,36 @@
+specVersion: 0.0.5
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: SentimentOracle
+    network: polygon-amoy
+    source:
+      address: "0x272441473a9994623e65A32890484809033fbB7f"
+      abi: SentimentOracle
+      startBlock: 30049646
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - SentimentUpdate
+        - DailySentiment
+        - HourlySentiment
+        - OracleStats
+      abis:
+        - name: SentimentOracle
+          file: SentimentOracle/abis/SentimentOracle.json
+      eventHandlers:
+        - event: SentimentUpdated(indexed address,int128,uint64,uint16,uint32)
+          handler: handleSentimentUpdated
+        - event: TokenWhitelisted(indexed address,bool)
+          handler: handleTokenWhitelisted
+        - event: CircuitBreakerTriggered(indexed address,uint8)
+          handler: handleCircuitBreakerTriggered
+        - event: Paused(address)
+          handler: handlePaused
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: SentimentOracle/SentimentOracle.wasm

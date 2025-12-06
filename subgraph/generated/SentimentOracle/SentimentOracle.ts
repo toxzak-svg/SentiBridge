@@ -10,72 +10,6 @@ import {
   BigInt,
 } from "@graphprotocol/graph-ts";
 
-export class SentimentUpdated extends ethereum.Event {
-  get params(): SentimentUpdated__Params {
-    return new SentimentUpdated__Params(this);
-  }
-}
-
-export class SentimentUpdated__Params {
-  _event: SentimentUpdated;
-
-  constructor(event: SentimentUpdated) {
-    this._event = event;
-  }
-
-  get tokenSymbol(): Bytes {
-    return this._event.parameters[0].value.toBytes();
-  }
-
-  get score(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-
-  get volume(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-
-  get sourceHash(): Bytes {
-    return this._event.parameters[3].value.toBytes();
-  }
-}
-
-export class TokenWhitelisted extends ethereum.Event {
-  get params(): TokenWhitelisted__Params {
-    return new TokenWhitelisted__Params(this);
-  }
-}
-
-export class TokenWhitelisted__Params {
-  _event: TokenWhitelisted;
-
-  constructor(event: TokenWhitelisted) {
-    this._event = event;
-  }
-
-  get tokenSymbol(): Bytes {
-    return this._event.parameters[0].value.toBytes();
-  }
-}
-
-export class TokenDelisted extends ethereum.Event {
-  get params(): TokenDelisted__Params {
-    return new TokenDelisted__Params(this);
-  }
-}
-
-export class TokenDelisted__Params {
-  _event: TokenDelisted;
-
-  constructor(event: TokenDelisted) {
-    this._event = event;
-  }
-
-  get tokenSymbol(): Bytes {
-    return this._event.parameters[0].value.toBytes();
-  }
-}
-
 export class CircuitBreakerTriggered extends ethereum.Event {
   get params(): CircuitBreakerTriggered__Params {
     return new CircuitBreakerTriggered__Params(this);
@@ -89,42 +23,30 @@ export class CircuitBreakerTriggered__Params {
     this._event = event;
   }
 
-  get tokenSymbol(): Bytes {
-    return this._event.parameters[0].value.toBytes();
-  }
-
-  get previousScore(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-
-  get attemptedScore(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-
-  get maxChange(): BigInt {
-    return this._event.parameters[3].value.toBigInt();
-  }
-}
-
-export class OperatorUpdated extends ethereum.Event {
-  get params(): OperatorUpdated__Params {
-    return new OperatorUpdated__Params(this);
-  }
-}
-
-export class OperatorUpdated__Params {
-  _event: OperatorUpdated;
-
-  constructor(event: OperatorUpdated) {
-    this._event = event;
-  }
-
-  get oldOperator(): Address {
+  get token(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 
-  get newOperator(): Address {
-    return this._event.parameters[1].value.toAddress();
+  get reason(): i32 {
+    return this._event.parameters[1].value.toI32();
+  }
+}
+
+export class Initialized extends ethereum.Event {
+  get params(): Initialized__Params {
+    return new Initialized__Params(this);
+  }
+}
+
+export class Initialized__Params {
+  _event: Initialized;
+
+  constructor(event: Initialized) {
+    this._event = event;
+  }
+
+  get version(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
   }
 }
 
@@ -146,6 +68,140 @@ export class Paused__Params {
   }
 }
 
+export class RoleAdminChanged extends ethereum.Event {
+  get params(): RoleAdminChanged__Params {
+    return new RoleAdminChanged__Params(this);
+  }
+}
+
+export class RoleAdminChanged__Params {
+  _event: RoleAdminChanged;
+
+  constructor(event: RoleAdminChanged) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get previousAdminRole(): Bytes {
+    return this._event.parameters[1].value.toBytes();
+  }
+
+  get newAdminRole(): Bytes {
+    return this._event.parameters[2].value.toBytes();
+  }
+}
+
+export class RoleGranted extends ethereum.Event {
+  get params(): RoleGranted__Params {
+    return new RoleGranted__Params(this);
+  }
+}
+
+export class RoleGranted__Params {
+  _event: RoleGranted;
+
+  constructor(event: RoleGranted) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class RoleRevoked extends ethereum.Event {
+  get params(): RoleRevoked__Params {
+    return new RoleRevoked__Params(this);
+  }
+}
+
+export class RoleRevoked__Params {
+  _event: RoleRevoked;
+
+  constructor(event: RoleRevoked) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class SentimentUpdated extends ethereum.Event {
+  get params(): SentimentUpdated__Params {
+    return new SentimentUpdated__Params(this);
+  }
+}
+
+export class SentimentUpdated__Params {
+  _event: SentimentUpdated;
+
+  constructor(event: SentimentUpdated) {
+    this._event = event;
+  }
+
+  get token(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get score(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get timestamp(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get confidence(): i32 {
+    return this._event.parameters[3].value.toI32();
+  }
+
+  get sampleSize(): BigInt {
+    return this._event.parameters[4].value.toBigInt();
+  }
+}
+
+export class TokenWhitelisted extends ethereum.Event {
+  get params(): TokenWhitelisted__Params {
+    return new TokenWhitelisted__Params(this);
+  }
+}
+
+export class TokenWhitelisted__Params {
+  _event: TokenWhitelisted;
+
+  constructor(event: TokenWhitelisted) {
+    this._event = event;
+  }
+
+  get token(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get status(): boolean {
+    return this._event.parameters[1].value.toBoolean();
+  }
+}
+
 export class Unpaused extends ethereum.Event {
   get params(): Unpaused__Params {
     return new Unpaused__Params(this);
@@ -164,42 +220,39 @@ export class Unpaused__Params {
   }
 }
 
-export class SentimentOracle__getCurrentSentimentResult {
-  value0: BigInt;
-  value1: BigInt;
-  value2: BigInt;
-  value3: Bytes;
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
 
-  constructor(value0: BigInt, value1: BigInt, value2: BigInt, value3: Bytes) {
-    this.value0 = value0;
-    this.value1 = value1;
-    this.value2 = value2;
-    this.value3 = value3;
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
   }
 
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
-    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
-    map.set("value3", ethereum.Value.fromFixedBytes(this.value3));
-    return map;
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class SentimentOracle__getSentimentResultValue0Struct extends ethereum.Tuple {
+  get score(): BigInt {
+    return this[0].toBigInt();
   }
 
-  getScore(): BigInt {
-    return this.value0;
+  get timestamp(): BigInt {
+    return this[1].toBigInt();
   }
 
-  getVolume(): BigInt {
-    return this.value1;
+  get sampleSize(): BigInt {
+    return this[2].toBigInt();
   }
 
-  getTimestamp(): BigInt {
-    return this.value2;
-  }
-
-  getSourceHash(): Bytes {
-    return this.value3;
+  get confidence(): i32 {
+    return this[3].toI32();
   }
 }
 
@@ -208,16 +261,58 @@ export class SentimentOracle__getSentimentHistoryResultValue0Struct extends ethe
     return this[0].toBigInt();
   }
 
-  get volume(): BigInt {
+  get timestamp(): BigInt {
     return this[1].toBigInt();
   }
 
-  get timestamp(): BigInt {
+  get sampleSize(): BigInt {
     return this[2].toBigInt();
   }
 
-  get sourceHash(): Bytes {
-    return this[3].toBytes();
+  get confidence(): i32 {
+    return this[3].toI32();
+  }
+}
+
+export class SentimentOracle__latestSentimentResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: i32;
+
+  constructor(value0: BigInt, value1: BigInt, value2: BigInt, value3: i32) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromSignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set(
+      "value3",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value3)),
+    );
+    return map;
+  }
+
+  getScore(): BigInt {
+    return this.value0;
+  }
+
+  getTimestamp(): BigInt {
+    return this.value1;
+  }
+
+  getSampleSize(): BigInt {
+    return this.value2;
+  }
+
+  getConfidence(): i32 {
+    return this.value3;
   }
 }
 
@@ -226,54 +321,317 @@ export class SentimentOracle extends ethereum.SmartContract {
     return new SentimentOracle("SentimentOracle", address);
   }
 
-  getCurrentSentiment(
-    tokenSymbol: string,
-  ): SentimentOracle__getCurrentSentimentResult {
+  ADMIN_ROLE(): Bytes {
+    let result = super.call("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  DEFAULT_ADMIN_ROLE(): Bytes {
     let result = super.call(
-      "getCurrentSentiment",
-      "getCurrentSentiment(string):(uint256,uint256,uint256,bytes32)",
-      [ethereum.Value.fromString(tokenSymbol)],
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
     );
 
-    return new SentimentOracle__getCurrentSentimentResult(
-      result[0].toBigInt(),
-      result[1].toBigInt(),
-      result[2].toBigInt(),
-      result[3].toBytes(),
+    return result[0].toBytes();
+  }
+
+  try_DEFAULT_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  MAX_BATCH_SIZE(): BigInt {
+    let result = super.call("MAX_BATCH_SIZE", "MAX_BATCH_SIZE():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_MAX_BATCH_SIZE(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "MAX_BATCH_SIZE",
+      "MAX_BATCH_SIZE():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  MAX_HISTORY_SIZE(): BigInt {
+    let result = super.call(
+      "MAX_HISTORY_SIZE",
+      "MAX_HISTORY_SIZE():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_MAX_HISTORY_SIZE(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "MAX_HISTORY_SIZE",
+      "MAX_HISTORY_SIZE():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  MIN_UPDATE_INTERVAL(): BigInt {
+    let result = super.call(
+      "MIN_UPDATE_INTERVAL",
+      "MIN_UPDATE_INTERVAL():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_MIN_UPDATE_INTERVAL(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "MIN_UPDATE_INTERVAL",
+      "MIN_UPDATE_INTERVAL():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  OPERATOR_ROLE(): Bytes {
+    let result = super.call("OPERATOR_ROLE", "OPERATOR_ROLE():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_OPERATOR_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "OPERATOR_ROLE",
+      "OPERATOR_ROLE():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  UPGRADER_ROLE(): Bytes {
+    let result = super.call("UPGRADER_ROLE", "UPGRADER_ROLE():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_UPGRADER_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "UPGRADER_ROLE",
+      "UPGRADER_ROLE():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  UPGRADE_INTERFACE_VERSION(): string {
+    let result = super.call(
+      "UPGRADE_INTERFACE_VERSION",
+      "UPGRADE_INTERFACE_VERSION():(string)",
+      [],
+    );
+
+    return result[0].toString();
+  }
+
+  try_UPGRADE_INTERFACE_VERSION(): ethereum.CallResult<string> {
+    let result = super.tryCall(
+      "UPGRADE_INTERFACE_VERSION",
+      "UPGRADE_INTERFACE_VERSION():(string)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+
+  VERSION(): string {
+    let result = super.call("VERSION", "VERSION():(string)", []);
+
+    return result[0].toString();
+  }
+
+  try_VERSION(): ethereum.CallResult<string> {
+    let result = super.tryCall("VERSION", "VERSION():(string)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+
+  circuitBreakerEnabled(): boolean {
+    let result = super.call(
+      "circuitBreakerEnabled",
+      "circuitBreakerEnabled():(bool)",
+      [],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_circuitBreakerEnabled(): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "circuitBreakerEnabled",
+      "circuitBreakerEnabled():(bool)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  getHistoryCount(token: Address): BigInt {
+    let result = super.call(
+      "getHistoryCount",
+      "getHistoryCount(address):(uint256)",
+      [ethereum.Value.fromAddress(token)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getHistoryCount(token: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getHistoryCount",
+      "getHistoryCount(address):(uint256)",
+      [ethereum.Value.fromAddress(token)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getLastUpdateTime(token: Address): BigInt {
+    let result = super.call(
+      "getLastUpdateTime",
+      "getLastUpdateTime(address):(uint256)",
+      [ethereum.Value.fromAddress(token)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getLastUpdateTime(token: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getLastUpdateTime",
+      "getLastUpdateTime(address):(uint256)",
+      [ethereum.Value.fromAddress(token)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getRoleAdmin(role: Bytes): Bytes {
+    let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
+      ethereum.Value.fromFixedBytes(role),
+    ]);
+
+    return result[0].toBytes();
+  }
+
+  try_getRoleAdmin(role: Bytes): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "getRoleAdmin",
+      "getRoleAdmin(bytes32):(bytes32)",
+      [ethereum.Value.fromFixedBytes(role)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getSentiment(
+    token: Address,
+  ): SentimentOracle__getSentimentResultValue0Struct {
+    let result = super.call(
+      "getSentiment",
+      "getSentiment(address):((int128,uint64,uint32,uint16))",
+      [ethereum.Value.fromAddress(token)],
+    );
+
+    return changetype<SentimentOracle__getSentimentResultValue0Struct>(
+      result[0].toTuple(),
     );
   }
 
-  try_getCurrentSentiment(
-    tokenSymbol: string,
-  ): ethereum.CallResult<SentimentOracle__getCurrentSentimentResult> {
+  try_getSentiment(
+    token: Address,
+  ): ethereum.CallResult<SentimentOracle__getSentimentResultValue0Struct> {
     let result = super.tryCall(
-      "getCurrentSentiment",
-      "getCurrentSentiment(string):(uint256,uint256,uint256,bytes32)",
-      [ethereum.Value.fromString(tokenSymbol)],
+      "getSentiment",
+      "getSentiment(address):((int128,uint64,uint32,uint16))",
+      [ethereum.Value.fromAddress(token)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(
-      new SentimentOracle__getCurrentSentimentResult(
-        value[0].toBigInt(),
-        value[1].toBigInt(),
-        value[2].toBigInt(),
-        value[3].toBytes(),
+      changetype<SentimentOracle__getSentimentResultValue0Struct>(
+        value[0].toTuple(),
       ),
     );
   }
 
   getSentimentHistory(
-    tokenSymbol: string,
+    token: Address,
     count: BigInt,
   ): Array<SentimentOracle__getSentimentHistoryResultValue0Struct> {
     let result = super.call(
       "getSentimentHistory",
-      "getSentimentHistory(string,uint256):((uint256,uint256,uint256,bytes32)[])",
+      "getSentimentHistory(address,uint256):((int128,uint64,uint32,uint16)[])",
       [
-        ethereum.Value.fromString(tokenSymbol),
+        ethereum.Value.fromAddress(token),
         ethereum.Value.fromUnsignedBigInt(count),
       ],
     );
@@ -282,16 +640,16 @@ export class SentimentOracle extends ethereum.SmartContract {
   }
 
   try_getSentimentHistory(
-    tokenSymbol: string,
+    token: Address,
     count: BigInt,
   ): ethereum.CallResult<
     Array<SentimentOracle__getSentimentHistoryResultValue0Struct>
   > {
     let result = super.tryCall(
       "getSentimentHistory",
-      "getSentimentHistory(string,uint256):((uint256,uint256,uint256,bytes32)[])",
+      "getSentimentHistory(address,uint256):((int128,uint64,uint32,uint16)[])",
       [
-        ethereum.Value.fromString(tokenSymbol),
+        ethereum.Value.fromAddress(token),
         ethereum.Value.fromUnsignedBigInt(count),
       ],
     );
@@ -304,21 +662,51 @@ export class SentimentOracle extends ethereum.SmartContract {
     );
   }
 
-  isTokenWhitelisted(tokenSymbol: string): boolean {
+  hasRole(role: Bytes, account: Address): boolean {
+    let result = super.call("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_hasRole(role: Bytes, account: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  isDataFresh(token: Address, maxStaleness: BigInt): boolean {
     let result = super.call(
-      "isTokenWhitelisted",
-      "isTokenWhitelisted(string):(bool)",
-      [ethereum.Value.fromString(tokenSymbol)],
+      "isDataFresh",
+      "isDataFresh(address,uint256):(bool)",
+      [
+        ethereum.Value.fromAddress(token),
+        ethereum.Value.fromUnsignedBigInt(maxStaleness),
+      ],
     );
 
     return result[0].toBoolean();
   }
 
-  try_isTokenWhitelisted(tokenSymbol: string): ethereum.CallResult<boolean> {
+  try_isDataFresh(
+    token: Address,
+    maxStaleness: BigInt,
+  ): ethereum.CallResult<boolean> {
     let result = super.tryCall(
-      "isTokenWhitelisted",
-      "isTokenWhitelisted(string):(bool)",
-      [ethereum.Value.fromString(tokenSymbol)],
+      "isDataFresh",
+      "isDataFresh(address,uint256):(bool)",
+      [
+        ethereum.Value.fromAddress(token),
+        ethereum.Value.fromUnsignedBigInt(maxStaleness),
+      ],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -327,26 +715,713 @@ export class SentimentOracle extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
-  getWhitelistedTokens(): Array<string> {
+  isTokenSupported(token: Address): boolean {
     let result = super.call(
-      "getWhitelistedTokens",
-      "getWhitelistedTokens():(string[])",
-      [],
+      "isTokenSupported",
+      "isTokenSupported(address):(bool)",
+      [ethereum.Value.fromAddress(token)],
     );
 
-    return result[0].toStringArray();
+    return result[0].toBoolean();
   }
 
-  try_getWhitelistedTokens(): ethereum.CallResult<Array<string>> {
+  try_isTokenSupported(token: Address): ethereum.CallResult<boolean> {
     let result = super.tryCall(
-      "getWhitelistedTokens",
-      "getWhitelistedTokens():(string[])",
+      "isTokenSupported",
+      "isTokenSupported(address):(bool)",
+      [ethereum.Value.fromAddress(token)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  lastUpdateTime(param0: Address): BigInt {
+    let result = super.call(
+      "lastUpdateTime",
+      "lastUpdateTime(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_lastUpdateTime(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "lastUpdateTime",
+      "lastUpdateTime(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  latestSentiment(param0: Address): SentimentOracle__latestSentimentResult {
+    let result = super.call(
+      "latestSentiment",
+      "latestSentiment(address):(int128,uint64,uint32,uint16)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return new SentimentOracle__latestSentimentResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toI32(),
+    );
+  }
+
+  try_latestSentiment(
+    param0: Address,
+  ): ethereum.CallResult<SentimentOracle__latestSentimentResult> {
+    let result = super.tryCall(
+      "latestSentiment",
+      "latestSentiment(address):(int128,uint64,uint32,uint16)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new SentimentOracle__latestSentimentResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toI32(),
+      ),
+    );
+  }
+
+  maxScoreChange(): BigInt {
+    let result = super.call("maxScoreChange", "maxScoreChange():(int128)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_maxScoreChange(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "maxScoreChange",
+      "maxScoreChange():(int128)",
       [],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toStringArray());
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  paused(): boolean {
+    let result = super.call("paused", "paused():(bool)", []);
+
+    return result[0].toBoolean();
+  }
+
+  try_paused(): ethereum.CallResult<boolean> {
+    let result = super.tryCall("paused", "paused():(bool)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  proxiableUUID(): Bytes {
+    let result = super.call("proxiableUUID", "proxiableUUID():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_proxiableUUID(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "proxiableUUID",
+      "proxiableUUID():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  supportedTokens(param0: Address): boolean {
+    let result = super.call(
+      "supportedTokens",
+      "supportedTokens(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportedTokens(param0: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportedTokens",
+      "supportedTokens(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  tokenWhitelistEnabled(): boolean {
+    let result = super.call(
+      "tokenWhitelistEnabled",
+      "tokenWhitelistEnabled():(bool)",
+      [],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_tokenWhitelistEnabled(): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "tokenWhitelistEnabled",
+      "tokenWhitelistEnabled():(bool)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  totalUpdates(): BigInt {
+    let result = super.call("totalUpdates", "totalUpdates():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_totalUpdates(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("totalUpdates", "totalUpdates():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class BatchSetTokenWhitelistCall extends ethereum.Call {
+  get inputs(): BatchSetTokenWhitelistCall__Inputs {
+    return new BatchSetTokenWhitelistCall__Inputs(this);
+  }
+
+  get outputs(): BatchSetTokenWhitelistCall__Outputs {
+    return new BatchSetTokenWhitelistCall__Outputs(this);
+  }
+}
+
+export class BatchSetTokenWhitelistCall__Inputs {
+  _call: BatchSetTokenWhitelistCall;
+
+  constructor(call: BatchSetTokenWhitelistCall) {
+    this._call = call;
+  }
+
+  get tokens(): Array<Address> {
+    return this._call.inputValues[0].value.toAddressArray();
+  }
+
+  get statuses(): Array<boolean> {
+    return this._call.inputValues[1].value.toBooleanArray();
+  }
+}
+
+export class BatchSetTokenWhitelistCall__Outputs {
+  _call: BatchSetTokenWhitelistCall;
+
+  constructor(call: BatchSetTokenWhitelistCall) {
+    this._call = call;
+  }
+}
+
+export class BatchUpdateSentimentCall extends ethereum.Call {
+  get inputs(): BatchUpdateSentimentCall__Inputs {
+    return new BatchUpdateSentimentCall__Inputs(this);
+  }
+
+  get outputs(): BatchUpdateSentimentCall__Outputs {
+    return new BatchUpdateSentimentCall__Outputs(this);
+  }
+}
+
+export class BatchUpdateSentimentCall__Inputs {
+  _call: BatchUpdateSentimentCall;
+
+  constructor(call: BatchUpdateSentimentCall) {
+    this._call = call;
+  }
+
+  get tokens(): Array<Address> {
+    return this._call.inputValues[0].value.toAddressArray();
+  }
+
+  get scores(): Array<BigInt> {
+    return this._call.inputValues[1].value.toBigIntArray();
+  }
+
+  get sampleSizes(): Array<BigInt> {
+    return this._call.inputValues[2].value.toBigIntArray();
+  }
+
+  get confidences(): Array<i32> {
+    return this._call.inputValues[3].value.toI32Array();
+  }
+}
+
+export class BatchUpdateSentimentCall__Outputs {
+  _call: BatchUpdateSentimentCall;
+
+  constructor(call: BatchUpdateSentimentCall) {
+    this._call = call;
+  }
+}
+
+export class GrantRoleCall extends ethereum.Call {
+  get inputs(): GrantRoleCall__Inputs {
+    return new GrantRoleCall__Inputs(this);
+  }
+
+  get outputs(): GrantRoleCall__Outputs {
+    return new GrantRoleCall__Outputs(this);
+  }
+}
+
+export class GrantRoleCall__Inputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class GrantRoleCall__Outputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+}
+
+export class InitializeCall extends ethereum.Call {
+  get inputs(): InitializeCall__Inputs {
+    return new InitializeCall__Inputs(this);
+  }
+
+  get outputs(): InitializeCall__Outputs {
+    return new InitializeCall__Outputs(this);
+  }
+}
+
+export class InitializeCall__Inputs {
+  _call: InitializeCall;
+
+  constructor(call: InitializeCall) {
+    this._call = call;
+  }
+
+  get admin(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get operator(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class InitializeCall__Outputs {
+  _call: InitializeCall;
+
+  constructor(call: InitializeCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall extends ethereum.Call {
+  get inputs(): PauseCall__Inputs {
+    return new PauseCall__Inputs(this);
+  }
+
+  get outputs(): PauseCall__Outputs {
+    return new PauseCall__Outputs(this);
+  }
+}
+
+export class PauseCall__Inputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall__Outputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceRoleCall extends ethereum.Call {
+  get inputs(): RenounceRoleCall__Inputs {
+    return new RenounceRoleCall__Inputs(this);
+  }
+
+  get outputs(): RenounceRoleCall__Outputs {
+    return new RenounceRoleCall__Outputs(this);
+  }
+}
+
+export class RenounceRoleCall__Inputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get callerConfirmation(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RenounceRoleCall__Outputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+}
+
+export class RevokeRoleCall extends ethereum.Call {
+  get inputs(): RevokeRoleCall__Inputs {
+    return new RevokeRoleCall__Inputs(this);
+  }
+
+  get outputs(): RevokeRoleCall__Outputs {
+    return new RevokeRoleCall__Outputs(this);
+  }
+}
+
+export class RevokeRoleCall__Inputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RevokeRoleCall__Outputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+}
+
+export class SetCircuitBreakerEnabledCall extends ethereum.Call {
+  get inputs(): SetCircuitBreakerEnabledCall__Inputs {
+    return new SetCircuitBreakerEnabledCall__Inputs(this);
+  }
+
+  get outputs(): SetCircuitBreakerEnabledCall__Outputs {
+    return new SetCircuitBreakerEnabledCall__Outputs(this);
+  }
+}
+
+export class SetCircuitBreakerEnabledCall__Inputs {
+  _call: SetCircuitBreakerEnabledCall;
+
+  constructor(call: SetCircuitBreakerEnabledCall) {
+    this._call = call;
+  }
+
+  get enabled(): boolean {
+    return this._call.inputValues[0].value.toBoolean();
+  }
+}
+
+export class SetCircuitBreakerEnabledCall__Outputs {
+  _call: SetCircuitBreakerEnabledCall;
+
+  constructor(call: SetCircuitBreakerEnabledCall) {
+    this._call = call;
+  }
+}
+
+export class SetMaxScoreChangeCall extends ethereum.Call {
+  get inputs(): SetMaxScoreChangeCall__Inputs {
+    return new SetMaxScoreChangeCall__Inputs(this);
+  }
+
+  get outputs(): SetMaxScoreChangeCall__Outputs {
+    return new SetMaxScoreChangeCall__Outputs(this);
+  }
+}
+
+export class SetMaxScoreChangeCall__Inputs {
+  _call: SetMaxScoreChangeCall;
+
+  constructor(call: SetMaxScoreChangeCall) {
+    this._call = call;
+  }
+
+  get newMaxChange(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class SetMaxScoreChangeCall__Outputs {
+  _call: SetMaxScoreChangeCall;
+
+  constructor(call: SetMaxScoreChangeCall) {
+    this._call = call;
+  }
+}
+
+export class SetTokenWhitelistCall extends ethereum.Call {
+  get inputs(): SetTokenWhitelistCall__Inputs {
+    return new SetTokenWhitelistCall__Inputs(this);
+  }
+
+  get outputs(): SetTokenWhitelistCall__Outputs {
+    return new SetTokenWhitelistCall__Outputs(this);
+  }
+}
+
+export class SetTokenWhitelistCall__Inputs {
+  _call: SetTokenWhitelistCall;
+
+  constructor(call: SetTokenWhitelistCall) {
+    this._call = call;
+  }
+
+  get token(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get status(): boolean {
+    return this._call.inputValues[1].value.toBoolean();
+  }
+}
+
+export class SetTokenWhitelistCall__Outputs {
+  _call: SetTokenWhitelistCall;
+
+  constructor(call: SetTokenWhitelistCall) {
+    this._call = call;
+  }
+}
+
+export class SetTokenWhitelistEnabledCall extends ethereum.Call {
+  get inputs(): SetTokenWhitelistEnabledCall__Inputs {
+    return new SetTokenWhitelistEnabledCall__Inputs(this);
+  }
+
+  get outputs(): SetTokenWhitelistEnabledCall__Outputs {
+    return new SetTokenWhitelistEnabledCall__Outputs(this);
+  }
+}
+
+export class SetTokenWhitelistEnabledCall__Inputs {
+  _call: SetTokenWhitelistEnabledCall;
+
+  constructor(call: SetTokenWhitelistEnabledCall) {
+    this._call = call;
+  }
+
+  get enabled(): boolean {
+    return this._call.inputValues[0].value.toBoolean();
+  }
+}
+
+export class SetTokenWhitelistEnabledCall__Outputs {
+  _call: SetTokenWhitelistEnabledCall;
+
+  constructor(call: SetTokenWhitelistEnabledCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall extends ethereum.Call {
+  get inputs(): UnpauseCall__Inputs {
+    return new UnpauseCall__Inputs(this);
+  }
+
+  get outputs(): UnpauseCall__Outputs {
+    return new UnpauseCall__Outputs(this);
+  }
+}
+
+export class UnpauseCall__Inputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall__Outputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateSentimentCall extends ethereum.Call {
+  get inputs(): UpdateSentimentCall__Inputs {
+    return new UpdateSentimentCall__Inputs(this);
+  }
+
+  get outputs(): UpdateSentimentCall__Outputs {
+    return new UpdateSentimentCall__Outputs(this);
+  }
+}
+
+export class UpdateSentimentCall__Inputs {
+  _call: UpdateSentimentCall;
+
+  constructor(call: UpdateSentimentCall) {
+    this._call = call;
+  }
+
+  get token(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get score(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get sampleSize(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+
+  get confidence(): i32 {
+    return this._call.inputValues[3].value.toI32();
+  }
+}
+
+export class UpdateSentimentCall__Outputs {
+  _call: UpdateSentimentCall;
+
+  constructor(call: UpdateSentimentCall) {
+    this._call = call;
+  }
+}
+
+export class UpgradeToAndCallCall extends ethereum.Call {
+  get inputs(): UpgradeToAndCallCall__Inputs {
+    return new UpgradeToAndCallCall__Inputs(this);
+  }
+
+  get outputs(): UpgradeToAndCallCall__Outputs {
+    return new UpgradeToAndCallCall__Outputs(this);
+  }
+}
+
+export class UpgradeToAndCallCall__Inputs {
+  _call: UpgradeToAndCallCall;
+
+  constructor(call: UpgradeToAndCallCall) {
+    this._call = call;
+  }
+
+  get newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get data(): Bytes {
+    return this._call.inputValues[1].value.toBytes();
+  }
+}
+
+export class UpgradeToAndCallCall__Outputs {
+  _call: UpgradeToAndCallCall;
+
+  constructor(call: UpgradeToAndCallCall) {
+    this._call = call;
   }
 }

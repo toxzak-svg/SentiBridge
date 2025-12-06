@@ -1,12 +1,11 @@
 -- SentiBridge Database Initialization
 
--- Create databases
-CREATE DATABASE IF NOT EXISTS sentibridge;
-CREATE DATABASE IF NOT EXISTS graph_node;
+-- Database is already created by POSTGRES_DB env var
+-- Create additional databases for graph-node
+SELECT 'CREATE DATABASE graph_node' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'graph_node')\gexec
 
 -- Grant permissions
 GRANT ALL PRIVILEGES ON DATABASE sentibridge TO sentibridge;
-GRANT ALL PRIVILEGES ON DATABASE graph_node TO sentibridge;
 
 -- Connect to sentibridge database
 \c sentibridge

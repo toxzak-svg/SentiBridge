@@ -50,6 +50,19 @@ export class Token extends Entity {
     this.set("id", Value.fromString(value));
   }
 
+  get address(): Bytes {
+    let value = this.get("address");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set address(value: Bytes) {
+    this.set("address", Value.fromBytes(value));
+  }
+
   get currentScore(): BigInt {
     let value = this.get("currentScore");
     if (!value || value.kind == ValueKind.NULL) {
@@ -63,17 +76,30 @@ export class Token extends Entity {
     this.set("currentScore", Value.fromBigInt(value));
   }
 
-  get currentVolume(): BigInt {
-    let value = this.get("currentVolume");
+  get currentConfidence(): i32 {
+    let value = this.get("currentConfidence");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return 0;
     } else {
-      return value.toBigInt();
+      return value.toI32();
     }
   }
 
-  set currentVolume(value: BigInt) {
-    this.set("currentVolume", Value.fromBigInt(value));
+  set currentConfidence(value: i32) {
+    this.set("currentConfidence", Value.fromI32(value));
+  }
+
+  get currentSampleSize(): i32 {
+    let value = this.get("currentSampleSize");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set currentSampleSize(value: i32) {
+    this.set("currentSampleSize", Value.fromI32(value));
   }
 
   get lastUpdated(): BigInt {
@@ -215,30 +241,30 @@ export class SentimentUpdate extends Entity {
     this.set("score", Value.fromBigInt(value));
   }
 
-  get volume(): BigInt {
-    let value = this.get("volume");
+  get confidence(): i32 {
+    let value = this.get("confidence");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return 0;
     } else {
-      return value.toBigInt();
+      return value.toI32();
     }
   }
 
-  set volume(value: BigInt) {
-    this.set("volume", Value.fromBigInt(value));
+  set confidence(value: i32) {
+    this.set("confidence", Value.fromI32(value));
   }
 
-  get sourceHash(): Bytes {
-    let value = this.get("sourceHash");
+  get sampleSize(): i32 {
+    let value = this.get("sampleSize");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return 0;
     } else {
-      return value.toBytes();
+      return value.toI32();
     }
   }
 
-  set sourceHash(value: Bytes) {
-    this.set("sourceHash", Value.fromBytes(value));
+  set sampleSize(value: i32) {
+    this.set("sampleSize", Value.fromI32(value));
   }
 
   get blockNumber(): BigInt {
@@ -413,19 +439,6 @@ export class DailySentiment extends Entity {
     this.set("closeScore", Value.fromBigInt(value));
   }
 
-  get totalVolume(): BigInt {
-    let value = this.get("totalVolume");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set totalVolume(value: BigInt) {
-    this.set("totalVolume", Value.fromBigInt(value));
-  }
-
   get updateCount(): BigInt {
     let value = this.get("updateCount");
     if (!value || value.kind == ValueKind.NULL) {
@@ -546,19 +559,6 @@ export class HourlySentiment extends Entity {
     this.set("lowScore", Value.fromBigInt(value));
   }
 
-  get totalVolume(): BigInt {
-    let value = this.get("totalVolume");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set totalVolume(value: BigInt) {
-    this.set("totalVolume", Value.fromBigInt(value));
-  }
-
   get updateCount(): BigInt {
     let value = this.get("updateCount");
     if (!value || value.kind == ValueKind.NULL) {
@@ -629,43 +629,17 @@ export class CircuitBreakerEvent extends Entity {
     this.set("token", Value.fromString(value));
   }
 
-  get previousScore(): BigInt {
-    let value = this.get("previousScore");
+  get reason(): i32 {
+    let value = this.get("reason");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return 0;
     } else {
-      return value.toBigInt();
+      return value.toI32();
     }
   }
 
-  set previousScore(value: BigInt) {
-    this.set("previousScore", Value.fromBigInt(value));
-  }
-
-  get attemptedScore(): BigInt {
-    let value = this.get("attemptedScore");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set attemptedScore(value: BigInt) {
-    this.set("attemptedScore", Value.fromBigInt(value));
-  }
-
-  get maxChange(): BigInt {
-    let value = this.get("maxChange");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set maxChange(value: BigInt) {
-    this.set("maxChange", Value.fromBigInt(value));
+  set reason(value: i32) {
+    this.set("reason", Value.fromI32(value));
   }
 
   get timestamp(): BigInt {
@@ -692,102 +666,6 @@ export class CircuitBreakerEvent extends Entity {
 
   set transactionHash(value: Bytes) {
     this.set("transactionHash", Value.fromBytes(value));
-  }
-}
-
-export class Operator extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Operator entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type Operator must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
-      );
-      store.set("Operator", id.toString(), this);
-    }
-  }
-
-  static loadInBlock(id: string): Operator | null {
-    return changetype<Operator | null>(store.get_in_block("Operator", id));
-  }
-
-  static load(id: string): Operator | null {
-    return changetype<Operator | null>(store.get("Operator", id));
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get isActive(): boolean {
-    let value = this.get("isActive");
-    if (!value || value.kind == ValueKind.NULL) {
-      return false;
-    } else {
-      return value.toBoolean();
-    }
-  }
-
-  set isActive(value: boolean) {
-    this.set("isActive", Value.fromBoolean(value));
-  }
-
-  get addedAt(): BigInt {
-    let value = this.get("addedAt");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set addedAt(value: BigInt) {
-    this.set("addedAt", Value.fromBigInt(value));
-  }
-
-  get removedAt(): BigInt | null {
-    let value = this.get("removedAt");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set removedAt(value: BigInt | null) {
-    if (!value) {
-      this.unset("removedAt");
-    } else {
-      this.set("removedAt", Value.fromBigInt(<BigInt>value));
-    }
-  }
-
-  get updateCount(): BigInt {
-    let value = this.get("updateCount");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set updateCount(value: BigInt) {
-    this.set("updateCount", Value.fromBigInt(value));
   }
 }
 
