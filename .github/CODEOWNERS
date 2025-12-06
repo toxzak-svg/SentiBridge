@@ -1,0 +1,32 @@
+# CODEOWNERS - Define code owners for automatic review assignment
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+*                           @toxzak-svg
+
+# Smart Contracts - Requires careful review
+/contracts/                 @toxzak-svg
+/contracts/src/             @toxzak-svg
+/contracts/test/            @toxzak-svg
+
+# Security-critical files - Extra attention required
+/contracts/src/*.sol        @toxzak-svg
+*.env.example               @toxzak-svg
+
+# Python workers
+/workers/                   @toxzak-svg
+
+# API
+/api/                       @toxzak-svg
+
+# Subgraph
+/subgraph/                  @toxzak-svg
+
+# Infrastructure and CI/CD
+/.github/                   @toxzak-svg
+/docker-compose*.yml        @toxzak-svg
+/Makefile                   @toxzak-svg
+
+# Documentation
+/docs/                      @toxzak-svg
+*.md                        @toxzak-svg
