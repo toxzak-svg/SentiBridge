@@ -1,0 +1,122 @@
+# =============================================================================
+# Pre-commit Configuration for SentiBridge
+# =============================================================================
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+# =============================================================================
+
+repos:
+  # -----------------------------------------------------------------------------
+  # General hooks
+  # -----------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^contracts/lib/
+      - id: end-of-file-fixer
+        exclude: ^contracts/lib/
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # -----------------------------------------------------------------------------
+  # Python hooks
+  # -----------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      # Linter
+      - id: ruff
+        args: [--fix]
+        types_or: [python, pyi]
+        files: ^(workers|api)/
+      # Formatter
+      - id: ruff-format
+        types_or: [python, pyi]
+        files: ^(workers|api)/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-redis
+          - types-requests
+        args: [--ignore-missing-imports]
+        files: ^(workers|api)/.*\.py$
+        exclude: ^(workers|api)/tests/
+
+  # -----------------------------------------------------------------------------
+  # Solidity hooks
+  # -----------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: forge-fmt
+        name: Forge Format
+        entry: bash -c 'cd contracts && forge fmt --check'
+        language: system
+        files: ^contracts/.*\.sol$
+        exclude: ^contracts/lib/
+        pass_filenames: false
+
+      - id: forge-build
+        name: Forge Build
+        entry: bash -c 'cd contracts && forge build'
+        language: system
+        files: ^contracts/.*\.sol$
+        exclude: ^contracts/lib/
+        pass_filenames: false
+
+      - id: forge-test
+        name: Forge Test
+        entry: bash -c 'cd contracts && forge test --no-match-test "testFuzz|invariant"'
+        language: system
+        files: ^contracts/.*\.sol$
+        exclude: ^contracts/lib/
+        pass_filenames: false
+        stages: [push]  # Only run on push, not commit (slower)
+
+  # -----------------------------------------------------------------------------
+  # Security hooks
+  # -----------------------------------------------------------------------------
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: ^(contracts/lib/|\.env\.example)
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
+    hooks:
+      - id: gitleaks
+        args: ['--no-banner']
+
+  # -----------------------------------------------------------------------------
+  # Documentation hooks
+  # -----------------------------------------------------------------------------
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix', '--disable', 'MD013', 'MD033', 'MD041']
+        exclude: ^(contracts/lib/|CHANGELOG\.md)
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+default_stages: [commit]
+fail_fast: false
+
+ci:
+  autofix_commit_msg: 'style: auto-fix by pre-commit hooks'
+  autofix_prs: true
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'

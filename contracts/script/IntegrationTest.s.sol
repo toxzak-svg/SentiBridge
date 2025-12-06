@@ -75,19 +75,19 @@ contract IntegrationTest is Script {
         }
         
         // Test 3: Read current sentiment (may not exist yet)
-        try oracle.getCurrentSentiment(testToken) returns (SentimentOracleV1.SentimentData memory) {
+        try oracle.getSentiment(testToken) returns (SentimentOracleV1.SentimentData memory) {
             pass("Get current sentiment");
         } catch {
             // This is OK if no sentiment exists yet
             pass("Get current sentiment (none exists)");
         }
         
-        // Test 4: Get sentiment count
-        try oracle.getSentimentCount(testToken) returns (uint256 count) {
-            console2.log("  Sentiment count:", count);
-            pass("Get sentiment count");
+        // Test 4: Get history count
+        try oracle.getHistoryCount(testToken) returns (uint256 count) {
+            console2.log("  History count:", count);
+            pass("Get history count");
         } catch {
-            fail("Get sentiment count");
+            fail("Get history count");
         }
     }
     
@@ -121,7 +121,7 @@ contract IntegrationTest is Script {
         vm.stopBroadcast();
         
         // Test 7: Verify sentiment was stored
-        try oracle.getCurrentSentiment(testToken) returns (SentimentOracleV1.SentimentData memory data) {
+        try oracle.getSentiment(testToken) returns (SentimentOracleV1.SentimentData memory data) {
             console2.log("  Score:", uint256(int256(data.score)));
             console2.log("  Confidence:", uint256(data.confidence));
             pass("Verify sentiment stored");
@@ -134,27 +134,25 @@ contract IntegrationTest is Script {
         console2.log("");
         console2.log("--- Testing Edge Cases ---");
         
-        // Test 8: Invalid score should revert
+        // Test 8: Invalid score should revert (exceeds MAX_SCORE of 1e18)
         vm.startBroadcast();
         try oracle.updateSentiment(
             testToken,
-            1500, // Invalid: > 1000
-            85,
+            int128(2e18), // Invalid: > MAX_SCORE (1e18)
             1000,
-            uint32(block.timestamp)
+            8500
         ) {
             fail("Invalid score accepted (should revert)");
         } catch {
             pass("Invalid score rejected");
         }
         
-        // Test 9: Invalid confidence should revert
+        // Test 9: Invalid confidence should revert (exceeds 10000 basis points)
         try oracle.updateSentiment(
             testToken,
-            500,
-            150, // Invalid: > 100
+            int128(500e15),
             1000,
-            uint32(block.timestamp)
+            15000  // Invalid: > 10000 (100%)
         ) {
             fail("Invalid confidence accepted (should revert)");
         } catch {
@@ -164,10 +162,9 @@ contract IntegrationTest is Script {
         // Test 10: Zero address should revert
         try oracle.updateSentiment(
             address(0),
-            500,
-            85,
+            int128(500e15),
             1000,
-            uint32(block.timestamp)
+            8500
         ) {
             fail("Zero address accepted (should revert)");
         } catch {
@@ -192,27 +189,24 @@ contract IntegrationTest is Script {
     function submitSentiment(SentimentOracleV1 oracle) external {
         oracle.updateSentiment(
             testToken,
-            420, // Slightly bullish
-            75,  // 75% confidence
-            500, // 500 samples
-            uint32(block.timestamp)
+            int128(420e15),  // Slightly bullish (0.42 in 18 decimals)
+            500,             // 500 samples
+            7500             // 75% confidence (basis points)
         );
     }
     
     function submitBatchSentiment(SentimentOracleV1 oracle) external {
         address[] memory tokens = new address[](1);
-        int16[] memory scores = new int16[](1);
-        uint8[] memory confidences = new uint8[](1);
+        int128[] memory scores = new int128[](1);
         uint32[] memory samples = new uint32[](1);
-        uint32[] memory timestamps = new uint32[](1);
+        uint16[] memory confidences = new uint16[](1);
         
         tokens[0] = testToken;
-        scores[0] = 550;
-        confidences[0] = 80;
+        scores[0] = int128(550e15);  // 0.55 in 18 decimals
         samples[0] = 750;
-        timestamps[0] = uint32(block.timestamp);
+        confidences[0] = 8000;       // 80% in basis points
         
-        oracle.batchUpdateSentiment(tokens, scores, confidences, samples, timestamps);
+        oracle.batchUpdateSentiment(tokens, scores, samples, confidences);
     }
     
     // Test result helpers
