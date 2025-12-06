@@ -1,0 +1,201 @@
+# ============ Entities ============
+
+"""
+Token entity representing a tracked cryptocurrency.
+"""
+type Token @entity {
+  "Token symbol (e.g., 'BTC', 'ETH')"
+  id: ID!
+  
+  "Current sentiment score (0-10000)"
+  currentScore: BigInt!
+  
+  "Current sample volume"
+  currentVolume: BigInt!
+  
+  "Last update timestamp"
+  lastUpdated: BigInt!
+  
+  "Whether the token is currently whitelisted"
+  isWhitelisted: Boolean!
+  
+  "Total number of updates"
+  updateCount: BigInt!
+  
+  "All sentiment updates for this token"
+  updates: [SentimentUpdate!]! @derivedFrom(field: "token")
+  
+  "Daily aggregated data"
+  dailyData: [DailySentiment!]! @derivedFrom(field: "token")
+  
+  "Hourly aggregated data"
+  hourlyData: [HourlySentiment!]! @derivedFrom(field: "token")
+  
+  "Circuit breaker triggers"
+  circuitBreakerEvents: [CircuitBreakerEvent!]! @derivedFrom(field: "token")
+}
+
+"""
+Individual sentiment update event.
+"""
+type SentimentUpdate @entity {
+  "Transaction hash + log index"
+  id: ID!
+  
+  "Token this update belongs to"
+  token: Token!
+  
+  "Sentiment score (0-10000)"
+  score: BigInt!
+  
+  "Sample volume"
+  volume: BigInt!
+  
+  "Hash of the source data"
+  sourceHash: Bytes!
+  
+  "Block number"
+  blockNumber: BigInt!
+  
+  "Block timestamp"
+  timestamp: BigInt!
+  
+  "Transaction hash"
+  transactionHash: Bytes!
+}
+
+"""
+Daily aggregated sentiment data.
+"""
+type DailySentiment @entity {
+  "Token symbol + day timestamp"
+  id: ID!
+  
+  "Token this data belongs to"
+  token: Token!
+  
+  "Day start timestamp (00:00 UTC)"
+  dayTimestamp: BigInt!
+  
+  "Average score for the day"
+  averageScore: BigInt!
+  
+  "Highest score"
+  highScore: BigInt!
+  
+  "Lowest score"
+  lowScore: BigInt!
+  
+  "Opening score (first of day)"
+  openScore: BigInt!
+  
+  "Closing score (last of day)"
+  closeScore: BigInt!
+  
+  "Total volume for the day"
+  totalVolume: BigInt!
+  
+  "Number of updates"
+  updateCount: BigInt!
+}
+
+"""
+Hourly aggregated sentiment data.
+"""
+type HourlySentiment @entity {
+  "Token symbol + hour timestamp"
+  id: ID!
+  
+  "Token this data belongs to"
+  token: Token!
+  
+  "Hour start timestamp"
+  hourTimestamp: BigInt!
+  
+  "Average score for the hour"
+  averageScore: BigInt!
+  
+  "Highest score"
+  highScore: BigInt!
+  
+  "Lowest score"
+  lowScore: BigInt!
+  
+  "Total volume for the hour"
+  totalVolume: BigInt!
+  
+  "Number of updates"
+  updateCount: BigInt!
+}
+
+"""
+Circuit breaker trigger event.
+"""
+type CircuitBreakerEvent @entity {
+  "Transaction hash + log index"
+  id: ID!
+  
+  "Token that triggered the circuit breaker"
+  token: Token!
+  
+  "Previous score"
+  previousScore: BigInt!
+  
+  "Attempted new score"
+  attemptedScore: BigInt!
+  
+  "Maximum allowed change"
+  maxChange: BigInt!
+  
+  "Block timestamp"
+  timestamp: BigInt!
+  
+  "Transaction hash"
+  transactionHash: Bytes!
+}
+
+"""
+Operator entity tracking authorized operators.
+"""
+type Operator @entity {
+  "Operator address"
+  id: ID!
+  
+  "Whether the operator is currently active"
+  isActive: Boolean!
+  
+  "When the operator was added"
+  addedAt: BigInt!
+  
+  "When the operator was removed (if applicable)"
+  removedAt: BigInt
+  
+  "Number of updates submitted by this operator"
+  updateCount: BigInt!
+}
+
+"""
+Global oracle statistics.
+"""
+type OracleStats @entity {
+  "Always 'stats'"
+  id: ID!
+  
+  "Total number of tokens ever tracked"
+  totalTokens: BigInt!
+  
+  "Currently whitelisted tokens"
+  activeTokens: BigInt!
+  
+  "Total sentiment updates across all tokens"
+  totalUpdates: BigInt!
+  
+  "Whether the oracle is currently paused"
+  isPaused: Boolean!
+  
+  "Last update timestamp"
+  lastUpdate: BigInt!
+  
+  "Total circuit breaker triggers"
+  circuitBreakerTriggers: BigInt!
+}
