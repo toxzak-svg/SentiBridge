@@ -51,6 +51,8 @@ SentiBridge is a decentralized sentiment oracle that aggregates real-time social
 |----------|-------------|
 | [Architecture](docs/ARCHITECTURE.md) | System design and component details |
 | [Security](docs/SECURITY.md) | Security model, threat analysis, best practices |
+| [Security Audit Checklist](docs/SECURITY_AUDIT_CHECKLIST.md) | Pre-audit checklist and Slither results |
+| [Testnet Deployment](docs/TESTNET_DEPLOYMENT.md) | Guide to deploying on Polygon Amoy |
 | [Development](docs/DEVELOPMENT.md) | Local setup, testing, and contribution guide |
 | [API Reference](docs/API.md) | REST API endpoints, authentication, SDKs |
 
@@ -103,12 +105,33 @@ sentibridge/
 
 SentiBridge implements defense-in-depth security:
 
-- **Smart Contracts**: OpenZeppelin AccessControl, Pausable, ReentrancyGuard, UUPS
+- **Smart Contracts**: OpenZeppelin AccessControl, Pausable, ReentrancyGuard, UUPS upgradeable
+- **Timelock**: 48-hour delay on admin functions for production deployments
 - **Key Management**: AWS KMS (HSM-backed) for oracle signing
-- **API**: Rate limiting, API key hashing, webhook signatures
+- **API**: Rate limiting, API key hashing (Argon2), JWT authentication
 - **Infrastructure**: VPC isolation, encrypted databases, TLS everywhere
+- **Static Analysis**: Slither verified (11 low/info findings, all documented)
 
-See [SECURITY.md](docs/SECURITY.md) for full details.
+See [SECURITY.md](docs/SECURITY.md) and [Security Audit Checklist](docs/SECURITY_AUDIT_CHECKLIST.md) for full details.
+
+## 🧪 Testing
+
+```bash
+# Run all smart contract tests (58 tests)
+cd contracts && forge test
+
+# Run with gas reporting
+forge test --gas-report
+
+# Run fuzz tests
+forge test --match-contract Fuzz
+
+# Run invariant tests
+forge test --match-contract Invariant
+
+# Run worker integration tests
+cd workers && python integration_test.py --mock
+```
 
 ## 🛣️ Roadmap
 
@@ -118,9 +141,10 @@ See [SECURITY.md](docs/SECURITY.md) for full details.
 - [x] **Phase 4**: API layer (tiered FastAPI with rate limiting)
 - [x] **Phase 5**: Subgraph schema and mappings
 - [x] **Phase 6**: CI/CD pipelines and infrastructure
-- [ ] **Phase 7**: Testnet deployment (Polygon Amoy)
-- [ ] **Phase 8**: Security audit
-- [ ] **Phase 9**: Mainnet launch
+- [x] **Phase 7**: Security hardening (timelock, production deploy scripts, Slither analysis)
+- [ ] **Phase 8**: Testnet deployment (Polygon Amoy) - [Guide](docs/TESTNET_DEPLOYMENT.md)
+- [ ] **Phase 9**: External security audit
+- [ ] **Phase 10**: Mainnet launch
 
 ## 🤝 Contributing
 
