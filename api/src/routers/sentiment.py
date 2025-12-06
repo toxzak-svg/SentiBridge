@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.auth import RateLimitedUser, require_tier
 from src.models import (
@@ -130,7 +130,7 @@ async def get_batch_sentiment(
     response_model=SentimentHistoryResponse,
     summary="Get historical sentiment data",
     description="Returns historical sentiment data for a token. Time range depends on tier.",
-    dependencies=[require_tier(Tier.BASIC)],
+    dependencies=[Depends(require_tier(Tier.BASIC))],
 )
 async def get_sentiment_history(
     token: str,
@@ -193,7 +193,7 @@ async def get_sentiment_history(
     response_model=list[SentimentResponse],
     summary="Get trending tokens by sentiment change",
     description="Returns tokens with the biggest sentiment changes in the last 24h.",
-    dependencies=[require_tier(Tier.PRO)],
+    dependencies=[Depends(require_tier(Tier.PRO))],
 )
 async def get_trending_tokens(
     user: RateLimitedUser,
