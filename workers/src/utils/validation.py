@@ -23,18 +23,22 @@ class SocialPost(BaseModel):
     before being processed by the sentiment analyzer.
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, populate_by_name=True)
 
-    source: Annotated[str, Field(pattern=r"^(twitter|discord|telegram)$")]
-    post_id: Annotated[str, Field(min_length=1, max_length=100)]
+    source: Annotated[str, Field(pattern=r"^(twitter|discord|telegram)$", alias="platform")]
+    post_id: Annotated[str, Field(min_length=1, max_length=100, alias="id")]
     author_id: Annotated[str, Field(min_length=1, max_length=100)]
-    text: Annotated[str, Field(min_length=1, max_length=10000)]
+    text: Annotated[str, Field(min_length=1, max_length=10000, alias="content")]
     timestamp: datetime
+    # backward-compatible optional username
+    author_username: str | None = Field(default=None, alias="author_username")
     token_mentions: list[str] = Field(default_factory=list)
 
     # Optional metadata
-    author_followers: int | None = Field(default=None, ge=0)
+    author_followers: int | None = Field(default=None, ge=0, alias="follower_count")
     author_verified: bool = False
+    # Optional account age in days (collectors may provide this)
+    author_account_age_days: int | None = Field(default=None, ge=0, alias="account_age_days")
     engagement_count: int = Field(default=0, ge=0)
     reply_count: int = Field(default=0, ge=0)
     retweet_count: int = Field(default=0, ge=0)
@@ -52,6 +56,14 @@ class SocialPost(BaseModel):
         v = unicodedata.normalize("NFKC", v)
         # Strip excessive whitespace
         v = " ".join(v.split())
+        return v
+
+    @field_validator("timestamp")
+    @classmethod
+    def parse_timestamp(cls, v):
+        """Accept epoch timestamps (int/float) as well as datetime."""
+        if isinstance(v, (int, float)):
+            return datetime.fromtimestamp(v)
         return v
 
     @field_validator("token_mentions")
@@ -129,6 +141,9 @@ class ManipulationFlags(BaseModel):
     temporal_clustering_score: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
     new_account_ratio: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
     cross_platform_divergence: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
+    # Additional signals
+    duplicate_ratio: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
+    burst_score: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
 
 
 class OracleUpdate(BaseModel):

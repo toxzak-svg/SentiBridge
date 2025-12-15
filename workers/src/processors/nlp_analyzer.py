@@ -12,8 +12,10 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
+from dataclasses import field
 
 import numpy as np
+import asyncio
 
 from src.utils.logging import get_logger
 from src.utils.validation import SentimentScore, SocialPost
@@ -28,6 +30,16 @@ class ModelPrediction:
     score: float  # -1.0 to 1.0
     confidence: float  # 0.0 to 1.0
     model_name: str
+
+
+@dataclass
+class SentimentResult:
+    """Backward-compatible result used by unit tests and lightweight callers."""
+
+    score: float
+    confidence: float
+    label: str | None = None
+    metadata: dict | None = field(default_factory=dict)
 
 
 class BaseSentimentModel(ABC):
@@ -153,6 +165,26 @@ class VADERSentimentModel(BaseSentimentModel):
             confidence=confidence,
             model_name=self.model_name,
         )
+
+    def analyze(self, text: str) -> SentimentResult:
+        """Synchronous compatibility wrapper used by tests.
+
+        Returns `SentimentResult` with score normalized to [0,1].
+        """
+        # Run async predict synchronously for compatibility
+        pred = asyncio.run(self.predict(text))
+
+        # Normalize VADER compound (-1..1) to 0..1
+        norm_score = max(0.0, min(1.0, (pred.score + 1.0) / 2.0))
+
+        # Simple label mapping
+        label = None
+        if pred.score >= 0.5:
+            label = "positive"
+        elif pred.score <= -0.5:
+            label = "negative"
+
+        return SentimentResult(score=norm_score, confidence=pred.confidence, label=label)
 
     async def predict_batch(self, texts: list[str]) -> list[ModelPrediction]:
         """Predict sentiment for multiple texts."""
@@ -292,7 +324,8 @@ class LightweightLLMModel(BaseSentimentModel):
             )
 
             prompt = (
-                f"Text:\n"""{text}"""\n\n" "Return only valid JSON: {\"score\": float, \"confidence\": float}."
+                "Text:\n\"\"\"" + text + "\"\"\"\n\n"
+                "Return only valid JSON: {\"score\": float, \"confidence\": float}."
             )
 
             resp = openai.ChatCompletion.create(

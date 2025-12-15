@@ -37,6 +37,19 @@ mypy src
 black src tests
 ```
 
+## Showcase
+
+Run the manipulation detector example to see detection outputs for several scenarios:
+
+```bash
+python -m workers.examples.showcase_manipulation
+```
+
+The script prints JSON-formatted `ManipulationFlags` for:
+- a normal / organic batch
+- a coordinated spam / volume spike batch
+- a cross-platform divergence example
+
 ## Security
 
 - Never commit `.env` files

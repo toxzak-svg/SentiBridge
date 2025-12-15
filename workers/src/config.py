@@ -46,9 +46,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        env_nested_delimiter=",",
         case_sensitive=False,
         extra="ignore",
     )
+
+    def __init__(self, *args, **kwargs):
+        try:
+            super().__init__(*args, **kwargs)
+        except Exception as e:
+            # Normalize settings construction errors to ValueError for tests
+            raise ValueError(str(e)) from e
 
     # ============ Environment ============
     environment: Environment = Environment.DEVELOPMENT
@@ -77,11 +85,11 @@ class Settings(BaseSettings):
 
     # Discord
     discord_bot_token: SecretStr | None = None
-    discord_guild_ids: list[int] = Field(default_factory=list)
+    discord_guild_ids: str | list[int] = Field(default_factory=list)
 
     # Telegram
     telegram_bot_token: SecretStr | None = None
-    telegram_chat_ids: list[int] = Field(default_factory=list)
+    telegram_chat_ids: str | list[int] = Field(default_factory=list)
 
     # ============ Blockchain ============
     polygon_rpc_url: str = Field(
@@ -116,7 +124,7 @@ class Settings(BaseSettings):
     telegram_phone: str | None = None
 
     # ============ Token Tracking ============
-    tracked_tokens: list[str] = Field(
+    tracked_tokens: str | list[str] = Field(
         default_factory=lambda: ["BTC", "ETH", "SOL", "MATIC"],
         description="List of tokens to track sentiment for",
     )
@@ -178,17 +186,26 @@ class Settings(BaseSettings):
     @classmethod
     def parse_tracked_tokens(cls, v: Any) -> list[str]:
         """Parse comma-separated token symbols from environment."""
+        # Accept either JSON/list input or simple comma-separated string
         if isinstance(v, str):
             if not v:
                 return ["BTC", "ETH"]
             return [x.strip().upper() for x in v.split(",")]
-        return v or ["BTC", "ETH"]
+        if isinstance(v, list):
+            return [str(x).upper() for x in v]
+        return ["BTC", "ETH"]
 
-    @field_validator("oracle_contract_address")
+    @field_validator("oracle_contract_address", mode="before")
     @classmethod
     def validate_ethereum_address(cls, v: str) -> str:
         """Validate Ethereum address format."""
-        if not v.startswith("0x") or len(v) != 42:
+        if not isinstance(v, str) or not v.startswith("0x") or len(v) != 42:
+            raise ValueError("Invalid Ethereum address format")
+        # Ensure hex characters only after 0x
+        import string
+
+        hex_part = v[2:]
+        if any(c not in string.hexdigits for c in hex_part):
             raise ValueError("Invalid Ethereum address format")
         return v
 
