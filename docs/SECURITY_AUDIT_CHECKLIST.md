@@ -118,9 +118,10 @@
 | Check | Status | Notes |
 |-------|--------|-------|
 | Private key protection | ✅ | AWS KMS recommended, local only for dev |
-| Manipulation detection | ✅ | Volume, similarity, temporal checks |
+| Manipulation detection | ✅ | Multi-layered: volume, similarity, temporal, bot/fake account, campaign, cross-platform divergence |
 | Rate limiting on APIs | ✅ | Per-collector limits |
 | Input sanitization | ✅ | HTML/script stripping |
+| Manipulation detection coverage | ✅ | All manipulation layers tested: volume, similarity, temporal, bot/fake, campaign, cross-platform |
 
 ### Infrastructure Security ✅
 

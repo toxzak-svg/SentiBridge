@@ -14,7 +14,7 @@ SentiBridge is a decentralized sentiment oracle that aggregates real-time social
 
 - **Multi-Platform Aggregation**: Real-time data from Twitter, Discord, and Telegram
 - **Advanced NLP**: Fine-tuned DistilBERT + VADER ensemble for crypto-specific sentiment
-- **Manipulation Detection**: Bot filtering, coordinated campaign detection, volume anomaly alerts
+- **Manipulation Detection**: Advanced multi-layered system including bot/fake account filtering, coordinated campaign detection, volume anomaly alerts, content similarity analysis, cross-platform divergence, and temporal/volume spike detection
 - **On-Chain Oracle**: UUPS-upgradeable Polygon smart contract with role-based access
 - **Tiered API**: Free, Pro, and Enterprise tiers with rate limiting and webhooks
 - **GraphQL Indexing**: The Graph subgraph for efficient historical queries
@@ -41,22 +41,29 @@ SentiBridge is a decentralized sentiment oracle that aggregates real-time social
 │     Web2 Social Streams                 │
 │  (Twitter, Discord, Telegram)           │
 └─────────────────┬───────────────────────┘
-                  │
+            │
 ┌─────────────────▼───────────────────────┐
 │     Off-Chain Workers (VPC Isolated)    │
 │  • Collectors → NLP → Manipulation Det. │
+│  • Manipulation Detection Engine:       │
+│      - Volume spike & anomaly detection │
+│      - Bot/fake account filtering       │
+│      - Content similarity & campaign    │
+│        detection                        │
+│      - Cross-platform divergence        │
+│      - Temporal pattern analysis        │
 │  • AWS KMS Signing → Polygon Submit     │
 └─────────────────┬───────────────────────┘
-                  │
+            │
 ┌─────────────────▼───────────────────────┐
 │     SentimentOracleV1 (Polygon)         │
 │  • Role-Based Access Control            │
 │  • Circular Buffer History (24h)        │
 │  • Pausable, Upgradeable                │
 └─────────────────┬───────────────────────┘
-                  │
-    ┌─────────────┼─────────────┐
-    ▼             ▼             ▼
+            │
+   ┌─────────────┼─────────────┐
+   ▼             ▼             ▼
  Subgraph      REST API      DeFi/AI
 (GraphQL)    (Tiered)      Consumers
 ```
@@ -125,6 +132,7 @@ SentiBridge implements defense-in-depth security:
 - **Timelock**: 48-hour delay on admin functions for production deployments
 - **Key Management**: AWS KMS (HSM-backed) for oracle signing
 - **API**: Rate limiting, API key hashing (Argon2), JWT authentication
+- **Manipulation Detection**: Multi-layered system combining volume anomaly detection, bot/fake account filtering, content similarity and campaign detection, cross-platform divergence, and temporal pattern analysis. Tokens with high manipulation scores are automatically flagged and excluded from on-chain submission.
 - **Infrastructure**: VPC isolation, encrypted databases, TLS everywhere
 - **Static Analysis**: Slither verified (11 low/info findings, all documented)
 
@@ -145,7 +153,7 @@ forge test --match-contract Fuzz
 # Run invariant tests
 forge test --match-contract Invariant
 
-# Run worker integration tests
+# Run worker integration tests (includes manipulation detection: volume, similarity, temporal, and cross-platform checks)
 cd workers && python integration_test.py --mock
 ```
 

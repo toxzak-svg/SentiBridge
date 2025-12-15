@@ -20,7 +20,10 @@ async def usage_middleware(request: Request, call_next: Callable):
     path = request.url.path
 
     # Only enforce for API paths under /api/v1 (skip docs, metrics, health)
-    if path.startswith("/api/v1") and not path.startswith("/api/v1/keys"):
+    # Allow unauthenticated access to attestations and keys endpoints
+    if path.startswith("/api/v1") and not (
+        path.startswith("/api/v1/keys") or path.startswith("/api/v1/attestations")
+    ):
         api_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
 
         if not api_key:

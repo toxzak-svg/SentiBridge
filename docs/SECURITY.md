@@ -57,9 +57,21 @@ This document outlines the security architecture, threat model, and best practic
 
 | Attack | Description | Mitigation |
 |--------|-------------|------------|
-| Social Manipulation | Coordinated fake posts | Bot detection, similarity checks |
-| Volume Attacks | Flood with low-quality data | Volume anomaly detection |
-| Sybil Attacks | Multiple fake accounts | Account age/quality weighting |
+| Social Manipulation | Coordinated fake posts, campaigns, or cross-platform attacks | Multi-layered manipulation detection: bot/fake account filtering, content similarity, campaign detection, cross-platform divergence, temporal/volume anomaly checks |
+| Volume Attacks | Flood with low-quality data or sudden spikes | Volume and temporal anomaly detection, exclusion of high-manipulation tokens |
+| Sybil Attacks | Multiple fake accounts | Account age/quality weighting, bot/fake account filtering |
+#
+# Manipulation Detection Technical Details
+#
+SentiBridge employs a multi-layered manipulation detection engine in its off-chain workers:
+
+- **Volume Spike & Anomaly Detection**: Detects sudden surges in message volume for a token or topic, flagging potential coordinated activity.
+- **Bot/Fake Account Filtering**: Uses account metadata (age, followers, activity) and ML heuristics to downweight or exclude likely bots.
+- **Content Similarity & Campaign Detection**: Clusters messages by semantic similarity to identify coordinated campaigns or repeated narratives.
+- **Cross-Platform Divergence**: Compares sentiment and message patterns across Twitter, Discord, and Telegram to detect manipulation isolated to a single platform.
+- **Temporal Pattern Analysis**: Flags unnatural posting intervals or bursts indicative of automation.
+
+Tokens with a manipulation score above a configurable threshold (default: 0.7) are excluded from on-chain submission. All manipulation signals are logged and available for monitoring and alerting.
 
 ## Smart Contract Security
 

@@ -122,7 +122,12 @@ SentiBridge is a decentralized sentiment oracle system that aggregates real-time
 
 **Processors** - Data analysis pipeline
 - `nlp_analyzer.py` - Sentiment scoring (DistilBERT + VADER)
-- `manipulation_detector.py` - Coordinated attack detection
+- `manipulation_detector.py` - Multi-layered manipulation detection:
+   - Volume spike & anomaly detection
+   - Bot/fake account filtering
+   - Content similarity & coordinated campaign detection
+   - Cross-platform divergence analysis
+   - Temporal pattern analysis
 
 **Oracle** - Blockchain interaction
 - `submitter.py` - Transaction construction and submission
@@ -223,7 +228,12 @@ SentiBridge is a decentralized sentiment oracle system that aggregates real-time
    Raw posts → DistilBERT → VADER → Ensemble score
 
 3. VALIDATE
-   Check manipulation signals → Adjust confidence → Flag anomalies
+   Multi-layered manipulation detection:
+     - Volume/temporal anomaly checks
+     - Bot/fake account filtering
+     - Content similarity & campaign detection
+     - Cross-platform divergence
+   Adjust confidence, flag anomalies, and exclude tokens with high manipulation scores
 
 4. AGGREGATE
    Per-token scores → Weighted average → Final sentiment
@@ -260,7 +270,7 @@ SentiBridge is a decentralized sentiment oracle system that aggregates real-time
 ### Key Metrics
 
 - **Oracle Health**: Last update timestamp, transaction success rate
-- **Data Quality**: Manipulation score, cross-platform divergence
+- **Data Quality**: Manipulation score (volume, similarity, temporal, cross-platform), cross-platform divergence
 - **API Performance**: Latency p50/p95/p99, error rate
 - **Infrastructure**: CPU, memory, database connections
 
@@ -269,7 +279,7 @@ SentiBridge is a decentralized sentiment oracle system that aggregates real-time
 | Alert | Condition | Severity |
 |-------|-----------|----------|
 | Oracle Stale | No update > 10 min | Critical |
-| High Manipulation | Score > 0.8 | Critical |
+| High Manipulation | Manipulation score > 0.8 (any layer) | Critical |
 | API Error Spike | Error rate > 5% | Warning |
 | Rate Limit Exhaustion | Any tier > 90% | Info |
 
