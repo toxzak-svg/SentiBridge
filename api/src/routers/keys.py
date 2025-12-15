@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import CurrentUser, generate_api_key, get_key_prefix, hash_api_key
 from src.auth.dependencies import get_redis
+from src.services.billing import billing_service
 from src.models import APIKey, APIKeyCreate, APIKeyResponse, Tier
 
 router = APIRouter(prefix="/keys", tags=["api-keys"])
@@ -43,6 +44,8 @@ async def create_api_key(
         mapping={
             "id": key_id,
             "user_id": current_user.sub,
+            # Link API key to billing customer id (ensures customer exists)
+            "customer_id": await billing_service.ensure_customer_for_user(current_user.sub),
             "name": key_data.name,
             "tier": key_data.tier.value,
             "created_at": created_at.isoformat(),

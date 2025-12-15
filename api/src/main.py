@@ -14,6 +14,7 @@ from src import auth
 from src.config import get_settings
 from src.routers import health_router, keys_router, sentiment_router
 from src.services.blockchain import get_blockchain_service
+from src.middleware.usage import usage_middleware
 
 logger = structlog.get_logger()
 
@@ -112,6 +113,8 @@ Free tier allows limited access without authentication.
         allow_headers=["*"],
     )
 
+    # Usage & API-key enforcement middleware (applies to /api/v1 routes)
+    app.middleware("http")(usage_middleware)
     # Prometheus metrics
     if settings.prometheus_enabled:
         Instrumentator().instrument(app).expose(app, endpoint="/metrics")
@@ -120,6 +123,10 @@ Free tier allows limited access without authentication.
     app.include_router(health_router)
     app.include_router(sentiment_router, prefix="/api/v1")
     app.include_router(keys_router, prefix="/api/v1")
+    # Attestations endpoint
+    from src.routers import attestations_router
+
+    app.include_router(attestations_router, prefix="/api/v1")
 
     # Global exception handler
     @app.exception_handler(Exception)

@@ -249,6 +249,83 @@ class TransformerSentimentModel(BaseSentimentModel):
         return predictions
 
 
+class LightweightLLMModel(BaseSentimentModel):
+    """
+    Lightweight LLM wrapper used for ambiguous / high-volatility text.
+
+    Behavior:
+    - If `openai` is available and `OPENAI_API_KEY` is set, use ChatCompletion
+      to ask for a numeric sentiment score and confidence.
+    - Otherwise fall back to the transformer sentiment model above.
+    """
+
+    def __init__(self, model_name: str | None = None) -> None:
+        # model_name kept for compatibility with Transformer fallback
+        self._model_name = model_name or "lightweight-llm"
+        self._fallback_transformer = TransformerSentimentModel()
+
+    @property
+    def model_name(self) -> str:
+        return f"light-llm-{self._model_name}"
+
+    async def predict(self, text: str) -> ModelPrediction:
+        # Try OpenAI ChatCompletion if available
+        try:
+            import os
+
+            key = os.environ.get("OPENAI_API_KEY")
+            if key is None:
+                raise RuntimeError("OPENAI_API_KEY not set")
+
+            try:
+                import openai
+            except Exception:
+                raise RuntimeError("openai package not installed")
+
+            openai.api_key = key
+
+            system = (
+                "You are a concise sentiment analysis assistant. "
+                "Given the input text, respond with a JSON object containing 'score' and 'confidence'. "
+                "'score' must be a number between -1.0 (very negative) and 1.0 (very positive). "
+                "'confidence' must be a number between 0.0 and 1.0 representing your confidence."
+            )
+
+            prompt = (
+                f"Text:\n"""{text}"""\n\n" "Return only valid JSON: {\"score\": float, \"confidence\": float}."
+            )
+
+            resp = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+                max_tokens=50,
+                temperature=0.0,
+            )
+
+            content = resp["choices"][0]["message"]["content"]
+
+            # Try to parse JSON from content
+            import json
+
+            parsed = json.loads(content)
+
+            score = float(parsed.get("score", 0.0))
+            confidence = float(parsed.get("confidence", 0.0))
+
+            # clamp
+            score = max(-1.0, min(1.0, score))
+            confidence = max(0.0, min(1.0, confidence))
+
+            return ModelPrediction(score=score, confidence=confidence, model_name=self.model_name)
+
+        except Exception:
+            # OpenAI not available or failed - fallback to transformer model
+            return await self._fallback_transformer.predict(text)
+
+    async def predict_batch(self, texts: list[str]) -> list[ModelPrediction]:
+        return [await self.predict(t) for t in texts]
+
+
 class EnsembleSentimentAnalyzer:
     """
     Ensemble sentiment analyzer combining multiple models.
@@ -264,12 +341,60 @@ class EnsembleSentimentAnalyzer:
         self,
         primary_model: BaseSentimentModel | None = None,
         fallback_model: BaseSentimentModel | None = None,
+        llm_model: BaseSentimentModel | None = None,
         primary_weight: float = 0.7,
+        volatility_prefilter: bool = True,
     ) -> None:
         self.primary_model = primary_model or TransformerSentimentModel()
         self.fallback_model = fallback_model or VADERSentimentModel()
         self.primary_weight = primary_weight
         self.fallback_weight = 1.0 - primary_weight
+        self.llm_model = llm_model or LightweightLLMModel()
+        self.volatility_prefilter = volatility_prefilter
+
+    def _is_volatile(self, text: str, vader_pred: ModelPrediction | None = None) -> bool:
+        """
+        Heuristic to decide whether the text is 'volatile' and should be
+        escalated to the lightweight LLM for a deeper, context-aware analysis.
+
+        Criteria (any triggers volatility):
+        - contains explicit volatility keywords (pump, dump, rug, crash, volatile, volatility)
+        - VADER indicates strong but mixed sentiment (both pos and neg high)
+        - presence of all-caps words or multiple exclamation marks
+        """
+        text_l = text.lower()
+        volatility_keywords = [
+            "volatile",
+            "volatility",
+            "pump",
+            "dump",
+            "rug",
+            "rugpull",
+            "rekt",
+            "crash",
+            "whale",
+            "fud",
+            "hodl",
+            "moon",
+            "dip",
+        ]
+
+        if any(k in text_l for k in volatility_keywords):
+            return True
+
+        # all-caps or strong punctuation
+        if any(word.isupper() and len(word) > 2 for word in text.split()):
+            return True
+        if text.count("!") >= 2 or text.count("?") >= 3:
+            return True
+
+        # use vader_pred to check mixed sentiment
+        if vader_pred is not None:
+            # Mixed if confidence is moderate but score near neutral
+            if vader_pred.confidence >= 0.4 and abs(vader_pred.score) <= 0.35:
+                return True
+
+        return False
 
     async def analyze(self, post: SocialPost) -> SentimentScore:
         """
@@ -281,26 +406,49 @@ class EnsembleSentimentAnalyzer:
 
         predictions: list[tuple[ModelPrediction, float]] = []
 
-        # Try primary model
+        # Run VADER as a fast prefilter
         try:
-            primary_pred = await self.primary_model.predict(post.text)
-            predictions.append((primary_pred, self.primary_weight))
+            vader_pred = await self.fallback_model.predict(post.text)
         except Exception as e:
-            logger.warning(
-                "Primary model failed, using fallback only",
-                error=str(e),
-            )
+            logger.warning("VADER prefilter failed", error=str(e))
+            vader_pred = None
 
-        # Always run fallback for ensemble
-        try:
-            fallback_pred = await self.fallback_model.predict(post.text)
-            # Adjust weight if primary failed
-            fallback_weight = 1.0 if len(predictions) == 0 else self.fallback_weight
-            predictions.append((fallback_pred, fallback_weight))
-        except Exception as e:
-            logger.error("Fallback model failed", error=str(e))
-            if len(predictions) == 0:
-                raise RuntimeError("All sentiment models failed")
+        # If volatility prefilter is enabled and VADER signals volatility, use LLM
+        if self.volatility_prefilter and self._is_volatile(post.text, vader_pred):
+            try:
+                llm_pred = await self.llm_model.predict(post.text)
+                # Combine VADER + LLM (small weight to VADER to preserve quick signal)
+                if vader_pred is not None:
+                    predictions.append((vader_pred, 0.25))
+                    predictions.append((llm_pred, 0.75))
+                else:
+                    predictions.append((llm_pred, 1.0))
+
+            except Exception as e:
+                logger.warning("LLM escalation failed, falling back to primary ensemble", error=str(e))
+
+        # If we didn't escalate to LLM, run the normal ensemble (primary + VADER)
+        if not predictions:
+            # Try primary model
+            try:
+                primary_pred = await self.primary_model.predict(post.text)
+                predictions.append((primary_pred, self.primary_weight))
+            except Exception as e:
+                logger.warning(
+                    "Primary model failed, using fallback only",
+                    error=str(e),
+                )
+
+            # Always include VADER for ensemble
+            try:
+                fallback_pred = vader_pred or (await self.fallback_model.predict(post.text))
+                # Adjust weight if primary failed
+                fallback_weight = 1.0 if len(predictions) == 0 else self.fallback_weight
+                predictions.append((fallback_pred, fallback_weight))
+            except Exception as e:
+                logger.error("Fallback model failed", error=str(e))
+                if len(predictions) == 0:
+                    raise RuntimeError("All sentiment models failed")
 
         # Calculate weighted ensemble
         total_weight = sum(w for _, w in predictions)

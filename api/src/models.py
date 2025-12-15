@@ -199,3 +199,20 @@ class HealthCheck(BaseModel):
     database: str
     redis: str
     blockchain: str
+
+
+class AttestationRequest(BaseModel):
+    """Request to submit an attestation for notarization."""
+
+    data_hash: str = Field(..., description="Hex-encoded keccak256 hash (0x...)")
+    signer: str = Field(..., description="Ethereum address of signer (0x...)")
+    signature: str = Field(..., description="Hex-encoded signature (0x...)")
+    metadata: dict | None = Field(default=None, description="Optional metadata or pointers (IPFS, notes)")
+
+
+class AttestationResponse(BaseModel):
+    """Response after accepting an attestation."""
+
+    accepted: bool
+    on_chain_tx: str | None = Field(default=None, description="Transaction hash if forwarded on-chain")
+    message: str | None = None

@@ -194,3 +194,24 @@ async def check_rate_limit(
 CurrentUser = Annotated[TokenData, Depends(get_current_user)]
 OptionalUser = Annotated[TokenData, Depends(get_optional_user)]
 RateLimitedUser = Annotated[TokenData, Depends(check_rate_limit)]
+
+
+async def require_api_key(
+    api_key_data: TokenData | None = Depends(get_api_key_data),
+) -> TokenData:
+    """
+    Require that a valid API key is present. Raises 401 if not.
+    Use this dependency when an endpoint must only accept requests with an API key.
+    """
+    if not api_key_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid X-API-Key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
+    return api_key_data
+
+
+# Type alias for endpoints that MUST present an API key
+APIKeyRequired = Annotated[TokenData, Depends(require_api_key)]
